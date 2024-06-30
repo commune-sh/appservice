@@ -1,0 +1,32 @@
+[app]
+# The domain pointing to this server
+domain = "public.commune.sh"
+# The port the server will listen on
+port = 8989
+
+[appservice]
+# ID of the appservice registration
+id = "commune_public_access"
+# sender_localpart from the appservice registration
+sender_localpart = "commune_public_access"
+# The access token from the appservice registration
+access_token = "app_service_access_token"
+# The homeserver access token from the appservice registration
+hs_access_token = "homeserver_access_token"
+
+[matrix]
+# Local domain of the Synapse server
+homeserver = "http://localhost:8008"
+# The server_name part of your Synapse configuration
+server_name = "commune.sh"
+
+[security]
+# This should include the domain you'll run this server on, and any other
+# domains you want to allow for local development
+allowed_origins = ["http://public.commune.sh"]
+
+[log]
+max_size = 100
+max_backups = 7
+max_age = 30
+compress = true
