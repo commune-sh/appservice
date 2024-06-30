@@ -9,9 +9,12 @@ import (
 	"maunium.net/go/mautrix/event"
 )
 
-func (c *App) JoinRoom() error {
-
-	return nil
+func (c *App) JoinRoom(room_id string) {
+	join, err := c.Matrix.JoinRoom(context.Background(), room_id, "", nil)
+	if err != nil {
+		c.Log.Error().Msgf("Error joining room: %v", err)
+	}
+	c.Log.Info().Msgf("Join response: %v", join)
 }
 
 func (c *App) Transactions() http.HandlerFunc {
@@ -34,16 +37,19 @@ func (c *App) Transactions() http.HandlerFunc {
 
 		for _, event := range events.Events {
 			switch event.Type.Type {
+			case "m.room.history_visibility":
+				world_readable := event.Content.Raw["history_visibility"].(string) == "world_readable"
+
+				if world_readable && c.Config.AppService.Rules.AutoJoin {
+					go c.JoinRoom(event.RoomID.String())
+				}
+
 			case "m.room.member":
 
 				invited := event.Content.Raw["membership"].(string) == "invite"
 
 				if invited {
-					join, err := c.Matrix.JoinRoom(context.Background(), event.RoomID.String(), "", nil)
-					if err != nil {
-						c.Log.Error().Msgf("Error joining room: %v", err)
-					}
-					c.Log.Info().Msgf("Join response: %v", join)
+					go c.JoinRoom(event.RoomID.String())
 				}
 
 			default:

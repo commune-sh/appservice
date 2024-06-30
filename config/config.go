@@ -17,6 +17,9 @@ type Config struct {
 		SenderLocalPart string `json:"sender_local_part" toml:"sender_local_part"`
 		AccessToken     string `json:"access_token" toml:"access_token"`
 		HSAccessToken   string `json:"hs_access_token" toml:"hs_access_token"`
+		Rules           struct {
+			AutoJoin bool `json:"auto_join" toml:"auto_join"`
+		} `json:"rules" toml:"rules"`
 	} `json:"appservice" toml:"appservice"`
 	Log struct {
 		File       string `toml:"file" json:"file"`

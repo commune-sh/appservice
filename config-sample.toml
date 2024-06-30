@@ -14,6 +14,11 @@ access_token = "app_service_access_token"
 # The homeserver access token from the appservice registration
 hs_access_token = "homeserver_access_token"
 
+[appservice.rules]
+# Will join every newly created room
+auto_join = true
+
+
 [matrix]
 # Local domain of the Synapse server
 homeserver = "http://localhost:8008"
