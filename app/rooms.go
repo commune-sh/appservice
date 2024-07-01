@@ -86,11 +86,14 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			}
 		}
 
+		resp := map[string]any{
+			"chunk":                     pr,
+			"total_room_count_estimate": len(rooms.JoinedRooms),
+		}
+
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
-			JSON: map[string]any{
-				"rooms": pr,
-			},
+			JSON: resp,
 		})
 	}
 }
