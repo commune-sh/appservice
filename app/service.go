@@ -15,9 +15,9 @@ func (c *App) JoinRoom(room_id string) {
 	if err != nil {
 		c.Log.Error().Msgf("Error joining room: %v", err)
 	}
-	c.Log.Info().Msgf("Join response: %v", join)
 
 	// cache the room
+	c.Log.Info().Msgf("Caching joined room: %v", join.RoomID.String())
 	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
 		tx.Set(room_id, "true", nil)
 		return nil
@@ -53,10 +53,20 @@ func (c *App) Transactions() http.HandlerFunc {
 
 			case "m.room.member":
 
-				invited := event.Content.Raw["membership"].(string) == "invite"
+				state, ok := event.Content.Raw["membership"].(string)
 
-				if invited {
-					go c.JoinRoom(event.RoomID.String())
+				if ok {
+					if state == "invite" {
+						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
+						go c.JoinRoom(event.RoomID.String())
+					}
+					if state == "leave" || state == "ban" {
+						c.Log.Info().Msgf("Removing room from cache: %v", event.RoomID.String())
+						c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
+							tx.Delete(event.RoomID.String())
+							return nil
+						})
+					}
 				}
 
 			default:

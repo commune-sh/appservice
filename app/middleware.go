@@ -65,8 +65,7 @@ func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
 
 		var joined bool
 		c.Cache.JoinedRooms.View(func(tx *buntdb.Tx) error {
-			x, err := tx.Get(room_id)
-			c.Log.Info().Msgf("room_id: %v", x)
+			_, err := tx.Get(room_id)
 			joined = err == nil
 			return nil
 		})
