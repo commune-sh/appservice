@@ -34,9 +34,10 @@ func (c *App) PublicRooms() http.HandlerFunc {
 				Code: http.StatusOK,
 				JSON: map[string]any{
 					"errcode": "M_UNKNOWN",
-					"error":   "Error fetching rooms",
+					"error":   "Error fetching public rooms",
 				},
 			})
+			return
 		}
 
 		parents := []*PublicRooms{}
@@ -76,12 +77,9 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			if err != nil {
 				c.Log.Error().Msgf("Error processing public rooms: %v", err)
 			}
-			c.Log.Info().Msgf("Public rooms: %v", rms)
 			resp["chunk"] = rms
 			resp["total_room_count_estimate"] = len(parents)
 		}
-
-		//c.Log.Info().Msgf("Public rooms: %v", parents)
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
