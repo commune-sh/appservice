@@ -3,11 +3,12 @@ package app
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/tidwall/buntdb"
 	"maunium.net/go/mautrix/event"
+	"maunium.net/go/mautrix/id"
 )
 
 func (c *App) JoinRoom(room_id string) {
@@ -24,10 +25,19 @@ func (c *App) JoinRoom(room_id string) {
 	})
 }
 
-func (c *App) LeaveRoom(room_id string) {
+func (c *App) LeaveRoom(room_id id.RoomID) {
+	_, err := c.Matrix.LeaveRoom(context.Background(), room_id)
+	if err != nil {
+		c.Log.Error().Msgf("Error joining room: %v", err)
+	}
+
+	c.RemoveRoomFromCache(room_id)
+}
+
+func (c *App) RemoveRoomFromCache(room_id id.RoomID) {
 	c.Log.Info().Msgf("Removing room from cache: %v", room_id)
 	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
-		tx.Delete(room_id)
+		tx.Delete(room_id.String())
 		return nil
 	})
 }
@@ -35,7 +45,7 @@ func (c *App) LeaveRoom(room_id string) {
 func (c *App) Transactions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -64,7 +74,7 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok && state != "world_readable" &&
 					c.Config.AppService.Rules.AutoJoin {
 
-					c.LeaveRoom(event.RoomID.String())
+					c.LeaveRoom(event.RoomID)
 				}
 
 			case "m.room.member":
@@ -77,7 +87,7 @@ func (c *App) Transactions() http.HandlerFunc {
 						go c.JoinRoom(event.RoomID.String())
 					}
 					if state == "leave" || state == "ban" {
-						c.LeaveRoom(event.RoomID.String())
+						c.RemoveRoomFromCache(event.RoomID)
 					}
 				}
 
