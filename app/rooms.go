@@ -4,7 +4,9 @@ import (
 	"context"
 	"net/http"
 
+	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
+	"maunium.net/go/mautrix/id"
 )
 
 type PublicRoom struct {
@@ -16,6 +18,11 @@ type PublicRoom struct {
 
 type Rooms struct {
 	rooms []PublicRoom `json:"rooms"`
+}
+
+type PublicRooms struct {
+	RoomID id.RoomID
+	State  mautrix.RoomStateMap
 }
 
 func (c *App) PublicRooms() http.HandlerFunc {
@@ -32,12 +39,11 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			})
 		}
 
-		pr := []PublicRoom{}
+		parents := []*PublicRooms{}
 
 		if len(rooms.JoinedRooms) > 0 {
 
 			for _, room_id := range rooms.JoinedRooms {
-
 				state, err := c.Matrix.State(context.Background(), room_id)
 				if err != nil {
 					c.Log.Error().Msgf("Error fetching state: %v", err)
@@ -53,42 +59,29 @@ func (c *App) PublicRooms() http.HandlerFunc {
 					continue
 				}
 
-				room := PublicRoom{
-					RoomID: room_id.String(),
+				parent := PublicRooms{
+					RoomID: room_id,
+					State:  state,
 				}
 
-				name_event := state[event.NewEventType("m.room.name")][""]
-				if name_event != nil {
-					name, ok := name_event.Content.Raw["name"].(string)
-					if ok {
-						room.Name = name
-					}
-				}
-
-				alias_event := state[event.NewEventType("m.room.canonical_alias")][""]
-				if alias_event != nil {
-					alias, ok := alias_event.Content.Raw["alias"].(string)
-					if ok {
-						room.CanonicalAlias = alias
-					}
-				}
-
-				avatar_event := state[event.NewEventType("m.room.avatar")][""]
-				if avatar_event != nil {
-					avatar, ok := avatar_event.Content.Raw["url"].(string)
-					if ok {
-						room.AvatarURL = avatar
-					}
-				}
-
-				pr = append(pr, room)
-
+				parents = append(parents, &parent)
 			}
+
 		}
 
+		if len(parents) > 0 {
+			rms, err := ProcessPublicRooms(parents)
+			if err != nil {
+				c.Log.Error().Msgf("Error processing public rooms: %v", err)
+			}
+			c.Log.Info().Msgf("Public rooms: %v", rms)
+		}
+
+		//c.Log.Info().Msgf("Public rooms: %v", parents)
+
 		resp := map[string]any{
-			"chunk":                     pr,
-			"total_room_count_estimate": len(rooms.JoinedRooms),
+			"chunk":                     parents,
+			"total_room_count_estimate": len(parents),
 		}
 
 		RespondWithJSON(w, &JSONResponse{
@@ -96,4 +89,42 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			JSON: resp,
 		})
 	}
+}
+
+func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
+	processed := []PublicRoom{}
+	for _, room := range rooms {
+
+		r := PublicRoom{
+			RoomID: room.RoomID.String(),
+		}
+
+		name_event := room.State[event.NewEventType("m.room.name")][""]
+		if name_event != nil {
+			name, ok := name_event.Content.Raw["name"].(string)
+			if ok {
+				r.Name = name
+			}
+		}
+
+		alias_event := room.State[event.NewEventType("m.room.canonical_alias")][""]
+		if alias_event != nil {
+			alias, ok := alias_event.Content.Raw["alias"].(string)
+			if ok {
+				r.CanonicalAlias = alias
+			}
+		}
+
+		avatar_event := room.State[event.NewEventType("m.room.avatar")][""]
+		if avatar_event != nil {
+			avatar, ok := avatar_event.Content.Raw["url"].(string)
+			if ok {
+				r.AvatarURL = avatar
+			}
+		}
+
+		processed = append(processed, r)
+
+	}
+	return processed, nil
 }
