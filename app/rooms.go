@@ -69,20 +69,19 @@ func (c *App) PublicRooms() http.HandlerFunc {
 
 		}
 
+		resp := map[string]any{}
+
 		if len(parents) > 0 {
 			rms, err := ProcessPublicRooms(parents)
 			if err != nil {
 				c.Log.Error().Msgf("Error processing public rooms: %v", err)
 			}
 			c.Log.Info().Msgf("Public rooms: %v", rms)
+			resp["chunk"] = rms
+			resp["total_room_count_estimate"] = len(parents)
 		}
 
 		//c.Log.Info().Msgf("Public rooms: %v", parents)
-
-		resp := map[string]any{
-			"chunk":                     parents,
-			"total_room_count_estimate": len(parents),
-		}
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
