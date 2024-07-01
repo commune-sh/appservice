@@ -1,8 +1,11 @@
 package app
 
 import (
+	"context"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // Get authenticated user's ID
@@ -51,6 +54,38 @@ func (c *App) AuthenticateHomeserver(h http.Handler) http.Handler {
 		}
 
 		h.ServeHTTP(w, r)
+
+	})
+}
+
+func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		room_id := chi.URLParam(r, "room_id")
+		log.Println(room_id)
+
+		rooms, err := c.Matrix.JoinedRooms(context.Background())
+		if err != nil {
+			c.Log.Error().Msgf("Error fetching joined rooms: %v", err)
+		}
+
+		if len(rooms.JoinedRooms) > 0 {
+			for _, room := range rooms.JoinedRooms {
+				if room.String() == room_id {
+					h.ServeHTTP(w, r)
+					return
+				}
+			}
+		}
+
+		RespondWithJSON(w, &JSONResponse{
+			Code: http.StatusForbidden,
+			JSON: map[string]any{
+				"errcode": "M_NOT_IN_ROOM",
+				"error":   "User not in room",
+			},
+		})
+		return
 
 	})
 }

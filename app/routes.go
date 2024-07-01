@@ -57,8 +57,9 @@ func routes(c *App) chi.Router {
 		r.Put("/transactions/{txnId}", c.Transactions())
 	})
 
-	r.Route("/_matrix/client", func(r chi.Router) {
-		r.Get("/*", c.MatrixAPIProxy())
+	r.Route("/_matrix/client/v3/rooms/{room_id}", func(r chi.Router) {
+		r.Use(c.ValidatePublicRoom)
+		r.Get("/messages", c.MatrixAPIProxy())
 	})
 
 	r.Route("/publicRooms", func(r chi.Router) {
