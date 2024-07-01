@@ -57,6 +57,10 @@ func routes(c *App) chi.Router {
 		r.Put("/transactions/{txnId}", c.Transactions())
 	})
 
+	r.Route("/publicRooms", func(r chi.Router) {
+		r.Get("/", c.PublicRooms())
+	})
+
 	r.Route("/", func(r chi.Router) {
 		r.Use(secureMiddleware.Handler)
 		//r.Get("/*", c.Index())

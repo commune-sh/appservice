@@ -6,9 +6,9 @@ port = 8989
 
 [appservice]
 # ID of the appservice registration
-id = "commune_public_access"
+id = "commune"
 # sender_localpart from the appservice registration
-sender_localpart = "commune_public_access"
+sender_localpart = "public"
 # The access token from the appservice registration
 access_token = "app_service_access_token"
 # The homeserver access token from the appservice registration
