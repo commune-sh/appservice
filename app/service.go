@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/tidwall/buntdb"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -15,6 +16,12 @@ func (c *App) JoinRoom(room_id string) {
 		c.Log.Error().Msgf("Error joining room: %v", err)
 	}
 	c.Log.Info().Msgf("Join response: %v", join)
+
+	// cache the room
+	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
+		tx.Set(room_id, "true", nil)
+		return nil
+	})
 }
 
 func (c *App) Transactions() http.HandlerFunc {

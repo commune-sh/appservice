@@ -7,7 +7,7 @@ import (
 )
 
 type Cache struct {
-	PublicRooms *buntdb.DB
+	JoinedRooms *buntdb.DB
 }
 
 func NewCache(conf *config.Config) (*Cache, error) {
@@ -18,7 +18,7 @@ func NewCache(conf *config.Config) (*Cache, error) {
 	}
 
 	c := &Cache{
-		PublicRooms: db,
+		JoinedRooms: db,
 	}
 
 	return c, nil

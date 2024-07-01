@@ -118,6 +118,8 @@ func Start(s *StartRequest) {
 		Matrix: client,
 	}
 
+	c.Setup()
+
 	c.Routes()
 
 	// c.Build()
