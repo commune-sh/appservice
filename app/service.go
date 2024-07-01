@@ -24,6 +24,14 @@ func (c *App) JoinRoom(room_id string) {
 	})
 }
 
+func (c *App) LeaveRoom(room_id string) {
+	c.Log.Info().Msgf("Removing room from cache: %v", room_id)
+	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
+		tx.Delete(room_id)
+		return nil
+	})
+}
+
 func (c *App) Transactions() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -43,12 +51,20 @@ func (c *App) Transactions() http.HandlerFunc {
 		}
 
 		for _, event := range events.Events {
+
 			switch event.Type.Type {
 			case "m.room.history_visibility":
-				world_readable := event.Content.Raw["history_visibility"].(string) == "world_readable"
+				state, ok := event.Content.Raw["history_visibility"].(string)
 
-				if world_readable && c.Config.AppService.Rules.AutoJoin {
+				if ok && state == "world_readable" &&
+					c.Config.AppService.Rules.AutoJoin {
 					go c.JoinRoom(event.RoomID.String())
+				}
+
+				if ok && state != "world_readable" &&
+					c.Config.AppService.Rules.AutoJoin {
+
+					c.LeaveRoom(event.RoomID.String())
 				}
 
 			case "m.room.member":
@@ -61,11 +77,7 @@ func (c *App) Transactions() http.HandlerFunc {
 						go c.JoinRoom(event.RoomID.String())
 					}
 					if state == "leave" || state == "ban" {
-						c.Log.Info().Msgf("Removing room from cache: %v", event.RoomID.String())
-						c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
-							tx.Delete(event.RoomID.String())
-							return nil
-						})
+						c.LeaveRoom(event.RoomID.String())
 					}
 				}
 
