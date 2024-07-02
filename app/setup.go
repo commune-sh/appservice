@@ -63,7 +63,7 @@ func (c *App) JoinPublicRooms() {
 		Filter: filter{
 			RoomTypes: []string{"m.space"},
 		},
-		Limit: 100,
+		Limit: 1000,
 	}
 
 	_, err = c.Matrix.MakeFullRequest(context.Background(), mautrix.FullRequest{
@@ -89,7 +89,7 @@ func (c *App) JoinPublicRooms() {
 				continue
 			}
 			c.Log.Info().Msgf("Joining: %v", room.RoomID)
-			//c.JoinRoom(room.RoomID.String())
+			c.JoinRoom(room.RoomID.String())
 			time.Sleep(1 * time.Second)
 		}
 	}
