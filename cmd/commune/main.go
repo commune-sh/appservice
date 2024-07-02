@@ -1,11 +1,11 @@
 package main
 
 import (
+	"commune/app"
 	"flag"
 	"log"
 	"os"
 	"os/signal"
-	"commune/app"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 		os.Exit(1)
 	}()
 
-	config := flag.String("config", "config.toml", "Shpong configuration file")
+	config := flag.String("config", "config.toml", "Commune configuration file")
 
 	flag.Parse()
 
@@ -31,8 +31,8 @@ func main() {
 		command := os.Args[1]
 
 		switch command {
-		case "views":
-			req.MakeViews = true
+		case "join":
+			req.JoinPublicRooms = true
 		}
 	}
 

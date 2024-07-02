@@ -64,8 +64,8 @@ func (c *App) Activate() {
 }
 
 type StartRequest struct {
-	Config    string
-	MakeViews bool
+	Config          string
+	JoinPublicRooms bool
 }
 
 var CONFIG_FILE string
@@ -116,6 +116,12 @@ func Start(s *StartRequest) {
 		Cache:  cache,
 		Log:    logger,
 		Matrix: client,
+	}
+
+	if s.JoinPublicRooms {
+		log.Println("Joining public rooms")
+		c.JoinPublicRooms()
+		os.Exit(1)
 	}
 
 	c.Setup()

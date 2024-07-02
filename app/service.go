@@ -12,13 +12,14 @@ import (
 )
 
 func (c *App) JoinRoom(room_id string) {
-	join, err := c.Matrix.JoinRoom(context.Background(), room_id, "", nil)
+	_, err := c.Matrix.JoinRoom(context.Background(), room_id, "", nil)
 	if err != nil {
 		c.Log.Error().Msgf("Error joining room: %v", err)
 	}
+}
 
-	// cache the room
-	c.Log.Info().Msgf("Caching joined room: %v", join.RoomID.String())
+func (c *App) AddRoomToCache(room_id string) {
+	c.Log.Info().Msgf("Caching joined room: %v", room_id)
 	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
 		tx.Set(room_id, "true", nil)
 		return nil
@@ -68,12 +69,11 @@ func (c *App) Transactions() http.HandlerFunc {
 
 				if ok && state == "world_readable" &&
 					c.Config.AppService.Rules.AutoJoin {
-					go c.JoinRoom(event.RoomID.String())
+					c.JoinRoom(event.RoomID.String())
+					c.AddRoomToCache(event.RoomID.String())
 				}
 
-				if ok && state != "world_readable" &&
-					c.Config.AppService.Rules.AutoJoin {
-
+				if ok && state != "world_readable" {
 					c.LeaveRoom(event.RoomID)
 				}
 
@@ -84,7 +84,8 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					if state == "invite" {
 						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
-						go c.JoinRoom(event.RoomID.String())
+						c.JoinRoom(event.RoomID.String())
+						c.AddRoomToCache(event.RoomID.String())
 					}
 					if state == "leave" || state == "ban" {
 						c.RemoveRoomFromCache(event.RoomID)
