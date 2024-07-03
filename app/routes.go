@@ -78,6 +78,10 @@ func routes(c *App) chi.Router {
 		r.Get("/", c.PublicRooms())
 	})
 
+	r.Route("/health", func(r chi.Router) {
+		r.Get("/", c.Health())
+	})
+
 	r.Route("/", func(r chi.Router) {
 		r.Use(secureMiddleware.Handler)
 		//r.Get("/*", c.Index())

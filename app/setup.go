@@ -89,7 +89,7 @@ func (c *App) JoinPublicRooms() {
 				continue
 			}
 			c.Log.Info().Msgf("Joining: %v", room.RoomID)
-			c.JoinRoom(room.RoomID.String())
+			c.JoinRoom(room.RoomID)
 			time.Sleep(1 * time.Second)
 		}
 	}
