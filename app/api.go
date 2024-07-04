@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -15,6 +16,8 @@ func (c *App) MatrixAPIProxy() http.HandlerFunc {
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		log.Println("lol")
 
 		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.Config.AppService.AccessToken))
 		w.Header().Del("Access-Control-Allow-Origin")

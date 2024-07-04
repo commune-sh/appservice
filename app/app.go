@@ -37,7 +37,7 @@ type App struct {
 }
 
 func (c *App) Activate() {
-	c.Log.Info().Msg("Started Commune server")
+	c.Log.Info().Msg("Started Commune Appservice")
 
 	idleConnsClosed := make(chan struct{})
 

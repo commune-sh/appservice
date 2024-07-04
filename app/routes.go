@@ -61,6 +61,7 @@ func routes(c *App) chi.Router {
 		r.Use(c.ValidatePublicRoom)
 		r.Get("/aliases", c.MatrixAPIProxy())
 		r.Get("/event/*", c.MatrixAPIProxy())
+		r.Get("/state", c.MatrixAPIProxy())
 		r.Get("/state/*", c.MatrixAPIProxy())
 		r.Get("/joined_members", c.MatrixAPIProxy())
 		r.Get("/members", c.MatrixAPIProxy())
