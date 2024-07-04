@@ -59,10 +59,8 @@ func (c *App) ProcessRoom(room_id id.RoomID) {
 	if !is_parent_space || is_child_space {
 	}
 
-	/*
-		c.JoinRoom(room_id)
-		c.AddRoomToCache(room_id)
-	*/
+	c.JoinRoom(room_id)
+	c.AddRoomToCache(room_id)
 }
 
 func (c *App) Transactions() http.HandlerFunc {
