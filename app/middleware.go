@@ -98,6 +98,14 @@ func (c *App) ValidateRoomID(h http.Handler) http.Handler {
 			resp, err := c.Matrix.ResolveAlias(context.Background(), alias)
 			if err != nil {
 				c.Log.Error().Err(err).Msg("error resolving alias")
+				RespondWithJSON(w, &JSONResponse{
+					Code: http.StatusForbidden,
+					JSON: map[string]any{
+						"errcode": "M_NOT_FOUND",
+						"error":   "Room not found.",
+					},
+				})
+				return
 			}
 
 			if resp.RoomID.String() != "" {

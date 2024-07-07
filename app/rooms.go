@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
@@ -14,6 +16,7 @@ type PublicRoom struct {
 	Name           string `json:"name"`
 	CanonicalAlias string `json:"canonical_alias"`
 	AvatarURL      string `json:"avatar_url"`
+	Topic          string `json:"topic"`
 }
 
 type Rooms struct {
@@ -120,8 +123,80 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			}
 		}
 
+		topic_event := room.State[event.NewEventType("m.room.topic")][""]
+		if topic_event != nil {
+			topic, ok := avatar_event.Content.Raw["topic"].(string)
+			if ok {
+				r.Topic = topic
+			}
+		}
+
 		processed = append(processed, r)
 
 	}
 	return processed, nil
+}
+
+func (c *App) RoomInfo() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		room_id := chi.URLParam(r, "room_id")
+
+		log.Println(room_id)
+
+		state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
+
+		if err != nil {
+			RespondWithError(w, &JSONResponse{
+				Code: http.StatusOK,
+				JSON: map[string]any{
+					"error": "Error fetching room state",
+				},
+			})
+			return
+		}
+
+		log.Println(state)
+
+		room := PublicRoom{
+			RoomID: room_id,
+		}
+
+		name_event := state[event.NewEventType("m.room.name")][""]
+		if name_event != nil {
+			name, ok := name_event.Content.Raw["name"].(string)
+			if ok {
+				room.Name = name
+			}
+		}
+
+		alias_event := state[event.NewEventType("m.room.canonical_alias")][""]
+		if alias_event != nil {
+			alias, ok := alias_event.Content.Raw["alias"].(string)
+			if ok {
+				room.CanonicalAlias = alias
+			}
+		}
+
+		avatar_event := state[event.NewEventType("m.room.avatar")][""]
+		if avatar_event != nil {
+			avatar, ok := avatar_event.Content.Raw["url"].(string)
+			if ok {
+				room.AvatarURL = avatar
+			}
+		}
+
+		topic_event := state[event.NewEventType("m.room.topic")][""]
+		if topic_event != nil {
+			topic, ok := avatar_event.Content.Raw["topic"].(string)
+			if ok {
+				room.Topic = topic
+			}
+		}
+
+		RespondWithJSON(w, &JSONResponse{
+			Code: http.StatusOK,
+			JSON: room,
+		})
+	}
 }
