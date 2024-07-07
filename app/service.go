@@ -89,6 +89,7 @@ func (c *App) Transactions() http.HandlerFunc {
 
 				if ok && state == "world_readable" &&
 					c.Config.AppService.Rules.AutoJoin {
+					c.Log.Info().Msgf("Autojoining room: %v", event.RoomID.String())
 					c.ProcessRoom(event.RoomID)
 				}
 

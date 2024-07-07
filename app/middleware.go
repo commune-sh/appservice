@@ -1,11 +1,14 @@
 package app
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/tidwall/buntdb"
+	"maunium.net/go/mautrix/id"
 )
 
 // Get authenticated user's ID
@@ -58,6 +61,59 @@ func (c *App) AuthenticateHomeserver(h http.Handler) http.Handler {
 	})
 }
 
+func ReplacePathParam(path, oldValue, newValue string) string {
+	segments := strings.Split(path, "/")
+	for i, segment := range segments {
+		if segment == oldValue {
+			segments[i] = newValue
+		}
+	}
+	return strings.Join(segments, "/")
+}
+
+// This checks whethere a given {room_id} is actually not a room ID but the
+// localpart of an alias. If it is, it resolves the alias to a room ID.
+func (c *App) ValidateRoomID(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		room_id := chi.URLParam(r, "room_id")
+
+		// missing room param
+		if room_id == "" {
+			RespondWithError(w, &JSONResponse{
+				Code: http.StatusOK,
+				JSON: map[string]any{
+					"error": "room ID is required",
+				},
+			})
+			return
+		}
+
+		is_room_id := IsValidRoomID(room_id)
+
+		if !is_room_id {
+
+			alias := id.NewRoomAlias(room_id, c.Config.Matrix.ServerName)
+
+			resp, err := c.Matrix.ResolveAlias(context.Background(), alias)
+			if err != nil {
+				c.Log.Error().Err(err).Msg("error resolving alias")
+			}
+
+			if resp.RoomID.String() != "" {
+				// pass on the resolved room ID to next handler
+				rctx := chi.RouteContext(r.Context())
+				rctx.URLParams.Add("room_id", resp.RoomID.String())
+
+				// replace the alias with the resolved room ID
+				r.URL.Path = ReplacePathParam(r.URL.Path, room_id, resp.RoomID.String())
+			}
+		}
+
+		h.ServeHTTP(w, r)
+
+	})
+}
 func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
