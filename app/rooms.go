@@ -125,7 +125,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 
 		topic_event := room.State[event.NewEventType("m.room.topic")][""]
 		if topic_event != nil {
-			topic, ok := avatar_event.Content.Raw["topic"].(string)
+			topic, ok := topic_event.Content.Raw["topic"].(string)
 			if ok {
 				r.Topic = topic
 			}
@@ -188,7 +188,7 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		topic_event := state[event.NewEventType("m.room.topic")][""]
 		if topic_event != nil {
-			topic, ok := avatar_event.Content.Raw["topic"].(string)
+			topic, ok := topic_event.Content.Raw["topic"].(string)
 			if ok {
 				room.Topic = topic
 			}
