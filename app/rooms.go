@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -142,8 +141,6 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		room_id := chi.URLParam(r, "room_id")
 
-		log.Println(room_id)
-
 		state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
 
 		if err != nil {
@@ -155,8 +152,6 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			})
 			return
 		}
-
-		log.Println(state)
 
 		room := PublicRoom{
 			RoomID: room_id,
