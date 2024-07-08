@@ -136,12 +136,59 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 	return processed, nil
 }
 
+func (c *App) GetRoomInfo(room_id string) (*PublicRoom, error) {
+
+	state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	room := PublicRoom{
+		RoomID: room_id,
+	}
+
+	name_event := state[event.NewEventType("m.room.name")][""]
+	if name_event != nil {
+		name, ok := name_event.Content.Raw["name"].(string)
+		if ok {
+			room.Name = name
+		}
+	}
+
+	alias_event := state[event.NewEventType("m.room.canonical_alias")][""]
+	if alias_event != nil {
+		alias, ok := alias_event.Content.Raw["alias"].(string)
+		if ok {
+			room.CanonicalAlias = alias
+		}
+	}
+
+	avatar_event := state[event.NewEventType("m.room.avatar")][""]
+	if avatar_event != nil {
+		avatar, ok := avatar_event.Content.Raw["url"].(string)
+		if ok {
+			room.AvatarURL = avatar
+		}
+	}
+
+	topic_event := state[event.NewEventType("m.room.topic")][""]
+	if topic_event != nil {
+		topic, ok := topic_event.Content.Raw["topic"].(string)
+		if ok {
+			room.Topic = topic
+		}
+	}
+
+	return &room, nil
+}
+
 func (c *App) RoomInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		room_id := chi.URLParam(r, "room_id")
 
-		state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
+		info, err := c.GetRoomInfo(room_id)
 
 		if err != nil {
 			RespondWithError(w, &JSONResponse{
@@ -153,45 +200,9 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			return
 		}
 
-		room := PublicRoom{
-			RoomID: room_id,
-		}
-
-		name_event := state[event.NewEventType("m.room.name")][""]
-		if name_event != nil {
-			name, ok := name_event.Content.Raw["name"].(string)
-			if ok {
-				room.Name = name
-			}
-		}
-
-		alias_event := state[event.NewEventType("m.room.canonical_alias")][""]
-		if alias_event != nil {
-			alias, ok := alias_event.Content.Raw["alias"].(string)
-			if ok {
-				room.CanonicalAlias = alias
-			}
-		}
-
-		avatar_event := state[event.NewEventType("m.room.avatar")][""]
-		if avatar_event != nil {
-			avatar, ok := avatar_event.Content.Raw["url"].(string)
-			if ok {
-				room.AvatarURL = avatar
-			}
-		}
-
-		topic_event := state[event.NewEventType("m.room.topic")][""]
-		if topic_event != nil {
-			topic, ok := topic_event.Content.Raw["topic"].(string)
-			if ok {
-				room.Topic = topic
-			}
-		}
-
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
-			JSON: room,
+			JSON: info,
 		})
 	}
 }
