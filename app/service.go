@@ -179,6 +179,22 @@ func (c *App) Transactions() http.HandlerFunc {
 						return
 					}
 				}
+			case "m.room.canonical_alias":
+				alias, ok := event.Content.Raw["alias"].(string)
+				c.Log.Info().Msgf("New room alias, updating cache value: %v", alias)
+				if ok {
+					err := c.UpdateRoomInfoCache(event.RoomID.String())
+					if err != nil {
+						RespondWithError(w, &JSONResponse{
+							Code: http.StatusOK,
+							JSON: map[string]any{
+								"error": "Error updating room info cache",
+							},
+						})
+						return
+					}
+					go c.RebuildPublicRoomsCache()
+				}
 			default:
 			}
 
