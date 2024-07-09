@@ -35,11 +35,17 @@ func (c *App) PublicRooms() http.HandlerFunc {
 
 		if err == nil && cached != "" {
 			c.Log.Info().Msgf("Found cached public rooms")
-			RespondWithJSON(w, &JSONResponse{
-				Code: http.StatusOK,
-				JSON: cached,
-			})
-			return
+
+			var data map[string]interface{}
+
+			if err := json.Unmarshal([]byte(cached), &data); err == nil {
+				RespondWithJSON(w, &JSONResponse{
+					Code: http.StatusOK,
+					JSON: data,
+				})
+				return
+			}
+
 		}
 
 		public_rooms, err := c.GetPublicRooms()
