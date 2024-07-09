@@ -19,6 +19,7 @@ func (c *App) Setup() {
 		c.Log.Error().Msgf("Error fetching joined rooms: %v", err)
 		return
 	}
+
 	if len(rooms.JoinedRooms) > 0 {
 		c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
 			tx.DeleteAll()
@@ -89,7 +90,11 @@ func (c *App) JoinPublicRooms() {
 				continue
 			}
 			c.Log.Info().Msgf("Joining: %v", room.RoomID)
-			c.JoinRoom(room.RoomID)
+			err = c.JoinRoom(room.RoomID)
+			if err != nil {
+				c.Log.Error().Msgf("Couldn't join room: %v", err)
+				return
+			}
 			time.Sleep(1 * time.Second)
 		}
 	}
