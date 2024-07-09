@@ -94,6 +94,18 @@ func (c *App) ValidateRoomID(h http.Handler) http.Handler {
 
 			alias := id.NewRoomAlias(room_id, c.Config.Matrix.ServerName)
 
+			cached, err := c.Cache.Rooms.Get(context.Background(), alias.String()).Result()
+			if err == nil && cached != "" {
+				c.Log.Info().Msgf("Found cached room alias for %v", cached)
+				rctx := chi.RouteContext(r.Context())
+				rctx.URLParams.Add("room_id", cached)
+
+				// replace the alias with the resolved room ID
+				r.URL.Path = ReplacePathParam(r.URL.Path, room_id, cached)
+				h.ServeHTTP(w, r)
+				return
+			}
+
 			resp, err := c.Matrix.ResolveAlias(context.Background(), alias)
 			if err != nil {
 				c.Log.Error().Err(err).Msg("error resolving alias")
@@ -127,8 +139,9 @@ func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
 		room_id := chi.URLParam(r, "room_id")
 
 		// check if room exists in cache
-		joined, err := c.Cache.Rooms.SIsMember(context.Background(), "ids", room_id).Result()
-		if err == nil && joined {
+		info, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
+
+		if err == nil && info != "" {
 			h.ServeHTTP(w, r)
 			return
 		}

@@ -51,19 +51,13 @@ func (c *App) AddRoomToCache(room *PublicRoom) error {
 		return err
 	}
 
-	err = c.Cache.Rooms.SAdd(context.Background(), "ids", room.RoomID).Err()
-	if err != nil {
-		c.Log.Error().Msgf("Couldn't cache room id %v", err)
-		return err
-	}
-
-	err = c.Cache.Rooms.SAdd(context.Background(), "aliases", room.CanonicalAlias).Err()
-	if err != nil {
-		c.Log.Error().Msgf("Couldn't cache room alias %v", err)
-		return err
-	}
-
 	err = c.Cache.Rooms.Set(context.Background(), room.RoomID, string(i), 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room %v", err)
+		return err
+	}
+
+	err = c.Cache.Rooms.Set(context.Background(), room.CanonicalAlias, room.RoomID, 0).Err()
 	if err != nil {
 		c.Log.Error().Msgf("Couldn't cache room %v", err)
 		return err
