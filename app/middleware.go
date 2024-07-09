@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/tidwall/buntdb"
 	"maunium.net/go/mautrix/id"
 )
 
@@ -127,16 +126,22 @@ func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
 
 		room_id := chi.URLParam(r, "room_id")
 
-		var joined bool
-		c.Cache.JoinedRooms.View(func(tx *buntdb.Tx) error {
-			_, err := tx.Get(room_id)
-			joined = err == nil
-			return nil
-		})
-
-		if joined {
+		// check if room exists in cache
+		joined, err := c.Cache.Rooms.SIsMember(context.Background(), "ids", room_id).Result()
+		if err == nil && joined {
 			h.ServeHTTP(w, r)
 			return
+		}
+
+		// if not found in cache, check if it's been joined by appservice
+		rooms, err := c.Matrix.JoinedRooms(context.Background())
+		if err == nil && len(rooms.JoinedRooms) > 0 {
+			for _, room := range rooms.JoinedRooms {
+				if room.String() == room_id {
+					h.ServeHTTP(w, r)
+					return
+				}
+			}
 		}
 
 		RespondWithJSON(w, &JSONResponse{

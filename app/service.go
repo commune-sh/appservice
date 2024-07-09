@@ -22,11 +22,14 @@ func (c *App) JoinRoom(room_id id.RoomID) error {
 func (c *App) LeaveRoom(room_id id.RoomID) error {
 	_, err := c.Matrix.LeaveRoom(context.Background(), room_id)
 	if err != nil {
-		c.Log.Error().Msgf("Error joining room: %v", err)
+		c.Log.Error().Msgf("Error leaving room: %v", err)
 		return err
 	}
 
-	c.RemoveRoomFromCache(room_id)
+	err = c.RemoveRoomFromCache(room_id)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -52,7 +55,13 @@ func (c *App) ProcessRoom(room_id id.RoomID) error {
 	if err != nil {
 		return err
 	}
-	err = c.AddRoomToCache(room_id)
+
+	info, err := c.GetRoomInfo(room_id.String())
+	if err != nil {
+		return err
+	}
+
+	err = c.AddRoomToCache(info)
 	if err != nil {
 		return err
 	}
@@ -116,7 +125,11 @@ func (c *App) Transactions() http.HandlerFunc {
 						}
 					}
 					if state == "leave" || state == "ban" {
-						c.RemoveRoomFromCache(event.RoomID)
+						err := c.RemoveRoomFromCache(event.RoomID)
+						if err != nil {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
 					}
 				}
 

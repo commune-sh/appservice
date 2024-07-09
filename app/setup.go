@@ -5,15 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tidwall/buntdb"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/event"
 )
 
 func (c *App) Setup() {
-
-	// build a cahce of rooms that appservice has joined
-
+	// build a cache of rooms that appservice has joined
 	rooms, err := c.Matrix.JoinedRooms(context.Background())
 	if err != nil {
 		c.Log.Error().Msgf("Error fetching joined rooms: %v", err)
@@ -21,14 +18,21 @@ func (c *App) Setup() {
 	}
 
 	if len(rooms.JoinedRooms) > 0 {
-		c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
-			tx.DeleteAll()
-			for _, room_id := range rooms.JoinedRooms {
-				//c.Log.Info().Msgf("room_id: %v", room_id)
-				tx.Set(room_id.String(), "true", nil)
+		for _, room_id := range rooms.JoinedRooms {
+
+			info, err := c.GetRoomInfo(room_id.String())
+			if err != nil {
+				c.Log.Error().Msgf("Error fetching room info: %v", err)
 			}
-			return nil
-		})
+
+			if info != nil {
+				c.AddRoomToCache(info)
+				if err != nil {
+					c.Log.Error().Msgf("Error adding room to cache: %v", err)
+				}
+			}
+
+		}
 	}
 
 }

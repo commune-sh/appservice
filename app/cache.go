@@ -43,40 +43,47 @@ func NewCache(conf *config.Config) (*Cache, error) {
 	return c, nil
 }
 
-func (c *App) AddRoomToCache(room_id id.RoomID) error {
-	c.Log.Info().Msgf("Caching joined room: %v", room_id.String())
-	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
-		tx.Set(room_id.String(), "true", nil)
-		return nil
-	})
+func (c *App) AddRoomToCache(room *PublicRoom) error {
 
-	info, err := c.GetRoomInfo(room_id.String())
+	i, err := json.Marshal(room)
 	if err != nil {
-		c.Log.Error().Msgf("Could not fetch room info: %v", err)
+		c.Log.Error().Msgf("Couldn't marshal room info %v", err)
 		return err
 	}
 
-	if info != nil {
+	err = c.Cache.Rooms.SAdd(context.Background(), "ids", room.RoomID).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room id %v", err)
+		return err
+	}
 
-		i, err := json.Marshal(info)
-		if err != nil {
-			c.Log.Error().Msgf("Couldn't marshal room info %v", err)
-			return err
-		}
+	err = c.Cache.Rooms.SAdd(context.Background(), "aliases", room.CanonicalAlias).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room alias %v", err)
+		return err
+	}
 
-		err = c.Cache.Rooms.Set(context.Background(), room_id.String(), string(i), 0).Err()
-		if err != nil {
-			c.Log.Error().Msgf("Couldn't cache room %v", err)
-			return err
-		}
+	err = c.Cache.Rooms.Set(context.Background(), room.RoomID, string(i), 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room %v", err)
+		return err
 	}
 
 	return nil
 }
-func (c *App) RemoveRoomFromCache(room_id id.RoomID) {
+
+func (c *App) RemoveRoomFromCache(room_id id.RoomID) error {
 	c.Log.Info().Msgf("Removing room from cache: %v", room_id)
 	c.Cache.JoinedRooms.Update(func(tx *buntdb.Tx) error {
 		tx.Delete(room_id.String())
 		return nil
 	})
+
+	err := c.Cache.Rooms.Del(context.Background(), room_id.String()).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room %v", err)
+		return err
+	}
+
+	return nil
 }

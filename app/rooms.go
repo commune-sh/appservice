@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -188,6 +189,22 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		room_id := chi.URLParam(r, "room_id")
 
+		// check if it's cached
+		cached, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
+
+		if err == nil && cached != "" {
+			c.Log.Info().Msgf("Found cached room info for %v", room_id)
+			var room PublicRoom
+			if err := json.Unmarshal([]byte(cached), &room); err == nil {
+				RespondWithJSON(w, &JSONResponse{
+					Code: http.StatusOK,
+					JSON: room,
+				})
+				return
+			}
+
+		}
+
 		info, err := c.GetRoomInfo(room_id)
 
 		if err != nil {
@@ -199,6 +216,13 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			})
 			return
 		}
+
+		go func() {
+			err := c.AddRoomToCache(info)
+			if err != nil {
+				c.Log.Error().Msgf("Error caching room info: %v", err)
+			}
+		}()
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
