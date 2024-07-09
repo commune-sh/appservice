@@ -33,10 +33,10 @@ type Config struct {
 		ServerName string `toml:"server_name" json:"server_name"`
 	} `json:"matrix" toml:"matrix"`
 	Redis struct {
-		Address  string `toml:"address" json:"address"`
-		Password string `toml:"password" json:"password"`
-		RoomsDB  int    `toml:"rooms_db" json:"rooms_db"`
-		EventsDB int    `toml:"events_db" json:"events_db"`
+		Address    string `toml:"address" json:"address"`
+		Password   string `toml:"password" json:"password"`
+		RoomsDB    int    `toml:"rooms_db" json:"rooms_db"`
+		MessagesDB int    `toml:"messages_db" json:"messages_db"`
 	} `json:"redis" toml:"redis"`
 	Security struct {
 		AllowedOrigins []string `toml:"allowed_origins" json:"allowed_origins"`

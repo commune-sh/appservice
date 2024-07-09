@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -31,22 +30,24 @@ type PublicRooms struct {
 func (c *App) PublicRooms() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		cached, err := c.Cache.Rooms.Get(context.Background(), "public_rooms").Result()
+		/*
+			cached, err := c.Cache.Rooms.Get(context.Background(), "public_rooms").Result()
 
-		if err == nil && cached != "" {
-			c.Log.Info().Msgf("Found cached public rooms")
+			if err == nil && cached != "" {
+				c.Log.Info().Msgf("Found cached public rooms")
 
-			var data map[string]interface{}
+				var data map[string]interface{}
 
-			if err := json.Unmarshal([]byte(cached), &data); err == nil {
-				RespondWithJSON(w, &JSONResponse{
-					Code: http.StatusOK,
-					JSON: data,
-				})
-				return
+				if err := json.Unmarshal([]byte(cached), &data); err == nil {
+					RespondWithJSON(w, &JSONResponse{
+						Code: http.StatusOK,
+						JSON: data,
+					})
+					return
+				}
+
 			}
-
-		}
+		*/
 
 		public_rooms, err := c.GetPublicRooms()
 		if err != nil {
@@ -60,13 +61,15 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			return
 		}
 
-		go func() {
-			c.Log.Info().Msgf("Caching public rooms")
-			err := c.CachePublicRooms(public_rooms)
-			if err != nil {
-				c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
-			}
-		}()
+		/*
+			go func() {
+				c.Log.Info().Msgf("Caching public rooms")
+				err := c.CachePublicRooms(public_rooms)
+				if err != nil {
+					c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
+				}
+			}()
+		*/
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
@@ -224,21 +227,23 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		room_id := chi.URLParam(r, "room_id")
 
-		// check if it's cached
-		cached, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
+		/*
+			// check if it's cached
+			cached, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
 
-		if err == nil && cached != "" {
-			c.Log.Info().Msgf("Found cached room info for %v", room_id)
-			var room PublicRoom
-			if err := json.Unmarshal([]byte(cached), &room); err == nil {
-				RespondWithJSON(w, &JSONResponse{
-					Code: http.StatusOK,
-					JSON: room,
-				})
-				return
+			if err == nil && cached != "" {
+				c.Log.Info().Msgf("Found cached room info for %v", room_id)
+				var room PublicRoom
+				if err := json.Unmarshal([]byte(cached), &room); err == nil {
+					RespondWithJSON(w, &JSONResponse{
+						Code: http.StatusOK,
+						JSON: room,
+					})
+					return
+				}
+
 			}
-
-		}
+		*/
 
 		info, err := c.GetRoomInfo(room_id)
 
@@ -252,12 +257,14 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			return
 		}
 
-		go func() {
-			err := c.AddRoomToCache(info)
-			if err != nil {
-				c.Log.Error().Msgf("Error caching room info: %v", err)
-			}
-		}()
+		/*
+			go func() {
+				err := c.AddRoomToCache(info)
+				if err != nil {
+					c.Log.Error().Msgf("Error caching room info: %v", err)
+				}
+			}()
+		*/
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,

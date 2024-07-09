@@ -94,17 +94,19 @@ func (c *App) ValidateRoomID(h http.Handler) http.Handler {
 
 			alias := id.NewRoomAlias(room_id, c.Config.Matrix.ServerName)
 
-			cached, err := c.Cache.Rooms.Get(context.Background(), alias.String()).Result()
-			if err == nil && cached != "" {
-				c.Log.Info().Msgf("Found cached room alias for %v", cached)
-				rctx := chi.RouteContext(r.Context())
-				rctx.URLParams.Add("room_id", cached)
+			/*
+				cached, err := c.Cache.Rooms.Get(context.Background(), alias.String()).Result()
+				if err == nil && cached != "" {
+					c.Log.Info().Msgf("Found cached room alias for %v", cached)
+					rctx := chi.RouteContext(r.Context())
+					rctx.URLParams.Add("room_id", cached)
 
-				// replace the alias with the resolved room ID
-				r.URL.Path = ReplacePathParam(r.URL.Path, room_id, cached)
-				h.ServeHTTP(w, r)
-				return
-			}
+					// replace the alias with the resolved room ID
+					r.URL.Path = ReplacePathParam(r.URL.Path, room_id, cached)
+					h.ServeHTTP(w, r)
+					return
+				}
+			*/
 
 			resp, err := c.Matrix.ResolveAlias(context.Background(), alias)
 			if err != nil {
@@ -138,23 +140,21 @@ func (c *App) ValidatePublicRoom(h http.Handler) http.Handler {
 
 		room_id := chi.URLParam(r, "room_id")
 
-		// check if room exists in cache
-		info, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
+		/*
+			// check if room exists in cache
+			info, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
 
-		if err == nil && info != "" {
-			h.ServeHTTP(w, r)
-			return
-		}
+			if err == nil && info != "" {
+				h.ServeHTTP(w, r)
+				return
+			}
+		*/
 
 		// if not found in cache, check if it's been joined by appservice
-		rooms, err := c.Matrix.JoinedRooms(context.Background())
-		if err == nil && len(rooms.JoinedRooms) > 0 {
-			for _, room := range rooms.JoinedRooms {
-				if room.String() == room_id {
-					h.ServeHTTP(w, r)
-					return
-				}
-			}
+		state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
+		if err == nil && state != nil {
+			h.ServeHTTP(w, r)
+			return
 		}
 
 		RespondWithJSON(w, &JSONResponse{

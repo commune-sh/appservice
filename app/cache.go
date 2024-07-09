@@ -11,7 +11,8 @@ import (
 )
 
 type Cache struct {
-	Rooms *redis.Client
+	Rooms    *redis.Client
+	Messages *redis.Client
 }
 
 func NewCache(conf *config.Config) (*Cache, error) {
@@ -27,8 +28,20 @@ func NewCache(conf *config.Config) (*Cache, error) {
 		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
 	}
 
+	mdb := redis.NewClient(&redis.Options{
+		Addr:     conf.Redis.Address,
+		Password: conf.Redis.Password,
+		DB:       conf.Redis.MessagesDB,
+	})
+
+	_, err = mdb.Ping(context.Background()).Result()
+	if err != nil {
+		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
+	}
+
 	c := &Cache{
-		Rooms: rdb,
+		Rooms:    rdb,
+		Messages: mdb,
 	}
 
 	return c, nil
