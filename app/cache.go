@@ -54,6 +54,8 @@ func (c *App) AddRoomToCache(room *PublicRoom) error {
 		return err
 	}
 
+	go c.RebuildPublicRoomsCache()
+
 	return nil
 }
 
@@ -75,6 +77,46 @@ func (c *App) RemoveRoomFromCache(room_id id.RoomID) error {
 	err = c.Cache.Rooms.Del(context.Background(), room.RoomID).Err()
 	if err != nil {
 		c.Log.Error().Msgf("Couldn't remove room ID from cache %v", err)
+		return err
+	}
+
+	go c.RebuildPublicRoomsCache()
+
+	return nil
+}
+
+func (c *App) CachePublicRooms(public_rooms any) error {
+
+	json, err := json.Marshal(public_rooms)
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
+		return err
+	}
+
+	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache public rooms %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (c *App) RebuildPublicRoomsCache() error {
+	public_rooms, err := c.GetPublicRooms()
+	if err != nil {
+		return err
+	}
+
+	json, err := json.Marshal(public_rooms)
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
+		return err
+	}
+
+	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache public rooms %v", err)
 		return err
 	}
 

@@ -31,7 +31,18 @@ type PublicRooms struct {
 func (c *App) PublicRooms() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		rooms, err := c.Matrix.JoinedRooms(context.Background())
+		cached, err := c.Cache.Rooms.Get(context.Background(), "public_rooms").Result()
+
+		if err == nil && cached != "" {
+			c.Log.Info().Msgf("Found cached public rooms")
+			RespondWithJSON(w, &JSONResponse{
+				Code: http.StatusOK,
+				JSON: cached,
+			})
+			return
+		}
+
+		public_rooms, err := c.GetPublicRooms()
 		if err != nil {
 			RespondWithJSON(w, &JSONResponse{
 				Code: http.StatusOK,
@@ -43,52 +54,70 @@ func (c *App) PublicRooms() http.HandlerFunc {
 			return
 		}
 
-		parents := []*PublicRooms{}
-
-		if len(rooms.JoinedRooms) > 0 {
-
-			for _, room_id := range rooms.JoinedRooms {
-				state, err := c.Matrix.State(context.Background(), room_id)
-				if err != nil {
-					c.Log.Error().Msgf("Error fetching state: %v", err)
-				}
-
-				has_children := event.NewEventType("m.space.child")
-				has_parent := event.NewEventType("m.space.parent")
-
-				is_parent_space := len(state[has_children]) > 0
-				is_child_space := len(state[has_parent]) > 0
-
-				if !is_parent_space || is_child_space {
-					continue
-				}
-
-				parent := PublicRooms{
-					RoomID: room_id,
-					State:  state,
-				}
-
-				parents = append(parents, &parent)
-			}
-
-		}
-
-		resp := map[string]any{}
-
-		if len(parents) > 0 {
-			rms, err := ProcessPublicRooms(parents)
+		go func() {
+			c.Log.Info().Msgf("Caching public rooms")
+			err := c.CachePublicRooms(public_rooms)
 			if err != nil {
-				c.Log.Error().Msgf("Error processing public rooms: %v", err)
+				c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
 			}
-			resp["chunk"] = rms
-			resp["total_room_count_estimate"] = len(parents)
-		}
+		}()
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
-			JSON: resp,
+			JSON: public_rooms,
 		})
 	}
+}
+
+func (c *App) GetPublicRooms() (any, error) {
+
+	rooms, err := c.Matrix.JoinedRooms(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	parents := []*PublicRooms{}
+
+	if len(rooms.JoinedRooms) > 0 {
+
+		for _, room_id := range rooms.JoinedRooms {
+			state, err := c.Matrix.State(context.Background(), room_id)
+			if err != nil {
+				c.Log.Error().Msgf("Error fetching state: %v", err)
+			}
+
+			has_children := event.NewEventType("m.space.child")
+			has_parent := event.NewEventType("m.space.parent")
+
+			is_parent_space := len(state[has_children]) > 0
+			is_child_space := len(state[has_parent]) > 0
+
+			if !is_parent_space || is_child_space {
+				continue
+			}
+
+			parent := PublicRooms{
+				RoomID: room_id,
+				State:  state,
+			}
+
+			parents = append(parents, &parent)
+		}
+
+	}
+
+	resp := map[string]any{}
+
+	if len(parents) > 0 {
+		rms, err := ProcessPublicRooms(parents)
+		if err != nil {
+			c.Log.Error().Msgf("Error processing public rooms: %v", err)
+		}
+		resp["chunk"] = rms
+		resp["total_room_count_estimate"] = len(parents)
+	}
+
+	return resp, nil
 }
 
 func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {

@@ -30,6 +30,7 @@ func (c *App) LeaveRoom(room_id id.RoomID) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -48,9 +49,10 @@ func (c *App) ProcessRoom(room_id id.RoomID) error {
 	is_child_space := len(state[has_parent]) > 0
 
 	if !is_parent_space || is_child_space {
-		return nil
+		//return nil
 	}
 
+	c.Log.Info().Msgf("Joining room: %v", room_id.String())
 	err = c.JoinRoom(room_id)
 	if err != nil {
 		return err
@@ -95,7 +97,6 @@ func (c *App) Transactions() http.HandlerFunc {
 
 				if ok && state == "world_readable" &&
 					c.Config.AppService.Rules.AutoJoin {
-					c.Log.Info().Msgf("Autojoining room: %v", event.RoomID.String())
 					err = c.ProcessRoom(event.RoomID)
 					if err != nil {
 						http.Error(w, err.Error(), http.StatusInternalServerError)
