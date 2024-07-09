@@ -35,6 +35,8 @@ func (c *App) Setup() {
 		}
 	}
 
+	c.Log.Info().Msg("Rebuilding public rooms cache")
+	c.RebuildPublicRoomsCache()
 }
 
 func (c *App) JoinPublicRooms() {
