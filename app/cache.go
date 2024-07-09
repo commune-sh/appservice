@@ -122,3 +122,19 @@ func (c *App) RebuildPublicRoomsCache() error {
 
 	return nil
 }
+
+func (c *App) UpdateRoomInfoCache(room_id string) error {
+	info, err := c.GetRoomInfo(room_id)
+
+	if err != nil {
+		return err
+	}
+
+	err = c.AddRoomToCache(info)
+	if err != nil {
+		c.Log.Error().Msgf("Error caching room info: %v", err)
+		return err
+	}
+
+	return nil
+}

@@ -134,6 +134,51 @@ func (c *App) Transactions() http.HandlerFunc {
 					}
 				}
 
+			case "m.room.name":
+				name, ok := event.Content.Raw["name"].(string)
+				c.Log.Info().Msgf("New room name, updating cache value: %v", name)
+				if ok {
+					err := c.UpdateRoomInfoCache(event.RoomID.String())
+					if err != nil {
+						RespondWithError(w, &JSONResponse{
+							Code: http.StatusOK,
+							JSON: map[string]any{
+								"error": "Error updating room info cache",
+							},
+						})
+						return
+					}
+				}
+			case "m.room.avatar":
+				url, ok := event.Content.Raw["url"].(string)
+				c.Log.Info().Msgf("New room avatar, updating cache value: %v", url)
+				if ok {
+					err := c.UpdateRoomInfoCache(event.RoomID.String())
+					if err != nil {
+						RespondWithError(w, &JSONResponse{
+							Code: http.StatusOK,
+							JSON: map[string]any{
+								"error": "Error updating room info cache",
+							},
+						})
+						return
+					}
+				}
+			case "m.room.topic":
+				topic, ok := event.Content.Raw["topic"].(string)
+				c.Log.Info().Msgf("New room topic, updating cache value: %v", topic)
+				if ok {
+					err := c.UpdateRoomInfoCache(event.RoomID.String())
+					if err != nil {
+						RespondWithError(w, &JSONResponse{
+							Code: http.StatusOK,
+							JSON: map[string]any{
+								"error": "Error updating room info cache",
+							},
+						})
+						return
+					}
+				}
 			default:
 			}
 
