@@ -151,3 +151,25 @@ func (c *App) UpdateRoomInfoCache(room_id string) error {
 
 	return nil
 }
+
+func (c *App) CacheRoomMessages(room_id string) error {
+	c.Log.Info().Msgf("Caching messages for room: %v", room_id)
+	messages, err := c.Matrix.Messages(context.Background(), id.RoomID(room_id), "", "", 'b', nil, 0)
+	if err != nil {
+		c.Log.Error().Msgf("Error fetching messages: %v", err)
+		return err
+	}
+
+	json, err := json.Marshal(messages)
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't marshal messages %v", err)
+		return err
+	}
+
+	err = c.Cache.Messages.Set(context.Background(), room_id, json, 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache messages %v", err)
+		return err
+	}
+	return nil
+}

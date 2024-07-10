@@ -92,6 +92,13 @@ func (c *App) Transactions() http.HandlerFunc {
 		for _, event := range events.Events {
 
 			switch event.Type.Type {
+			case "m.room.message":
+				err := c.CacheRoomMessages(event.RoomID.String())
+				if err != nil {
+					c.Log.Error().Msgf("Error caching messages: %v", err)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			case "m.room.history_visibility":
 				state, ok := event.Content.Raw["history_visibility"].(string)
 
