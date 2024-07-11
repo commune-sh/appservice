@@ -12,6 +12,7 @@ import (
 
 type Cache struct {
 	Rooms    *redis.Client
+	Events   *redis.Client
 	Messages *redis.Client
 }
 
@@ -24,6 +25,17 @@ func NewCache(conf *config.Config) (*Cache, error) {
 	})
 
 	_, err := rdb.Ping(context.Background()).Result()
+	if err != nil {
+		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
+	}
+
+	edb := redis.NewClient(&redis.Options{
+		Addr:     conf.Redis.Address,
+		Password: conf.Redis.Password,
+		DB:       conf.Redis.EventsDB,
+	})
+
+	_, err = edb.Ping(context.Background()).Result()
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
 	}
@@ -41,10 +53,20 @@ func NewCache(conf *config.Config) (*Cache, error) {
 
 	c := &Cache{
 		Rooms:    rdb,
+		Events:   edb,
 		Messages: mdb,
 	}
 
 	return c, nil
+}
+
+func (c *App) CacheEvent(event_id id.EventID, event any) error {
+	err := c.Cache.Events.Set(context.Background(), event_id.String(), event, 0).Err()
+	if err != nil {
+		c.Log.Error().Msgf("Couldn't cache room %v", err)
+		return err
+	}
+	return nil
 }
 
 func (c *App) AddRoomToCache(room *PublicRoom) error {

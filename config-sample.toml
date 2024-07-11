@@ -30,6 +30,7 @@ address = "localhost:6379"
 password = ""
 rooms_db = 1
 messages_db = 2
+events_db = 3
 
 [security]
 # This should include the domain you'll run this server on, and any other

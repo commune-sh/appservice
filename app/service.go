@@ -84,12 +84,25 @@ func (c *App) Transactions() http.HandlerFunc {
 		var events struct {
 			Events []event.Event `json:"events"`
 		}
+
 		if err := json.Unmarshal(body, &events); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		for _, event := range events.Events {
+
+			go func() {
+				json, err := json.Marshal(event)
+				if err != nil {
+					c.Log.Error().Msgf("Couldn't marshal event %v", err)
+					return
+				}
+				err = c.CacheEvent(event.ID, json)
+				if err != nil {
+					c.Log.Error().Msgf("Error caching event: %v", err)
+				}
+			}()
 
 			switch event.Type.Type {
 			case "m.room.message":
