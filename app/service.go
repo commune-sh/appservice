@@ -142,15 +142,15 @@ func (c *App) Transactions() http.HandlerFunc {
 						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
 						err = c.ProcessRoom(event.RoomID)
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
-							return
+							//http.Error(w, err.Error(), http.StatusInternalServerError)
+							//return
 						}
 					}
 					if state == "leave" || state == "ban" {
 						err := c.RemoveRoomFromCache(event.RoomID)
 						if err != nil {
-							http.Error(w, err.Error(), http.StatusInternalServerError)
-							return
+							//http.Error(w, err.Error(), http.StatusInternalServerError)
+							//return
 						}
 					}
 				}
