@@ -161,13 +161,15 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					err := c.UpdateRoomInfoCache(event.RoomID.String())
 					if err != nil {
-						RespondWithError(w, &JSONResponse{
-							Code: http.StatusOK,
-							JSON: map[string]any{
-								"error": "Error updating room info cache",
-							},
-						})
-						return
+						/*
+							RespondWithError(w, &JSONResponse{
+								Code: http.StatusOK,
+								JSON: map[string]any{
+									"error": "Error updating room info cache",
+								},
+							})
+							return
+						*/
 					}
 				}
 			case "m.room.avatar":
@@ -176,13 +178,15 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					err := c.UpdateRoomInfoCache(event.RoomID.String())
 					if err != nil {
-						RespondWithError(w, &JSONResponse{
-							Code: http.StatusOK,
-							JSON: map[string]any{
-								"error": "Error updating room info cache",
-							},
-						})
-						return
+						/*
+							RespondWithError(w, &JSONResponse{
+								Code: http.StatusOK,
+								JSON: map[string]any{
+									"error": "Error updating room info cache",
+								},
+							})
+							return
+						*/
 					}
 				}
 			case "m.room.topic":
@@ -191,13 +195,15 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					err := c.UpdateRoomInfoCache(event.RoomID.String())
 					if err != nil {
-						RespondWithError(w, &JSONResponse{
-							Code: http.StatusOK,
-							JSON: map[string]any{
-								"error": "Error updating room info cache",
-							},
-						})
-						return
+						/*
+							RespondWithError(w, &JSONResponse{
+								Code: http.StatusOK,
+								JSON: map[string]any{
+									"error": "Error updating room info cache",
+								},
+							})
+							return
+						*/
 					}
 				}
 			case "m.room.canonical_alias":
@@ -206,15 +212,17 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					err := c.UpdateRoomInfoCache(event.RoomID.String())
 					if err != nil {
-						RespondWithError(w, &JSONResponse{
-							Code: http.StatusOK,
-							JSON: map[string]any{
-								"error": "Error updating room info cache",
-							},
-						})
-						return
+						/*
+							RespondWithError(w, &JSONResponse{
+								Code: http.StatusOK,
+								JSON: map[string]any{
+									"error": "Error updating room info cache",
+								},
+							})
+							return
+						*/
 					}
-					go c.RebuildPublicRoomsCache()
+					//go c.RebuildPublicRoomsCache()
 				}
 			default:
 			}
