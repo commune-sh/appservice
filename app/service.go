@@ -121,8 +121,8 @@ func (c *App) Transactions() http.HandlerFunc {
 					c.Config.AppService.Rules.AutoJoin {
 					err = c.ProcessRoom(event.RoomID)
 					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
+						//http.Error(w, err.Error(), http.StatusInternalServerError)
+						//return
 					}
 				}
 
