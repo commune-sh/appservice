@@ -143,8 +143,17 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		child_state := room.State[event.NewEventType("m.space.child")]
 		if child_state != nil {
 			for child, _ := range child_state {
-
 				for _, ro := range rooms {
+					join_rule_event := ro.State[event.NewEventType("m.room.join_rules")][""]
+					if join_rule_event != nil {
+						join_rule, ok := join_rule_event.Content.Raw["join_rule"].(string)
+						if ok {
+							if join_rule != "public" {
+								continue
+							}
+							r.JoinRule = join_rule
+						}
+					}
 					if ro.RoomID.String() == child {
 						r.Children = append(r.Children, child)
 					}
