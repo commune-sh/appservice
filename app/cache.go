@@ -89,7 +89,7 @@ func (c *App) AddRoomToCache(room *PublicRoom) error {
 		return err
 	}
 
-	go c.RebuildPublicRoomsCache()
+	//go c.RebuildPublicRoomsCache()
 
 	return nil
 }

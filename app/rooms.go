@@ -11,11 +11,13 @@ import (
 )
 
 type PublicRoom struct {
-	RoomID         string `json:"room_id"`
-	Name           string `json:"name"`
-	CanonicalAlias string `json:"canonical_alias"`
-	AvatarURL      string `json:"avatar_url"`
-	Topic          string `json:"topic"`
+	RoomID         string   `json:"room_id"`
+	Name           string   `json:"name"`
+	CanonicalAlias string   `json:"canonical_alias"`
+	AvatarURL      string   `json:"avatar_url"`
+	Topic          string   `json:"topic"`
+	JoinRule       string   `json:"join_rule"`
+	Children       []string `json:"children"`
 }
 
 type Rooms struct {
@@ -73,7 +75,9 @@ func (c *App) PublicRooms() http.HandlerFunc {
 
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
-			JSON: public_rooms,
+			JSON: map[string]any{
+				"rooms": public_rooms,
+			},
 		})
 	}
 }
@@ -90,6 +94,7 @@ func (c *App) GetPublicRooms() (any, error) {
 	if len(rooms.JoinedRooms) > 0 {
 
 		for _, room_id := range rooms.JoinedRooms {
+
 			state, err := c.Matrix.State(context.Background(), room_id)
 			if err != nil {
 				c.Log.Error().Msgf("Error fetching state: %v", err)
@@ -102,7 +107,7 @@ func (c *App) GetPublicRooms() (any, error) {
 			is_child_space := len(state[has_parent]) > 0
 
 			if !is_parent_space || is_child_space {
-				continue
+				//continue
 			}
 
 			parent := PublicRooms{
@@ -115,18 +120,16 @@ func (c *App) GetPublicRooms() (any, error) {
 
 	}
 
-	resp := map[string]any{}
-
 	if len(parents) > 0 {
+
 		rms, err := ProcessPublicRooms(parents)
 		if err != nil {
 			c.Log.Error().Msgf("Error processing public rooms: %v", err)
 		}
-		resp["chunk"] = rms
-		resp["total_room_count_estimate"] = len(parents)
+		return rms, nil
 	}
 
-	return resp, nil
+	return nil, nil
 }
 
 func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
@@ -135,6 +138,13 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 
 		r := PublicRoom{
 			RoomID: room.RoomID.String(),
+		}
+
+		child_state := room.State[event.NewEventType("m.space.child")]
+		if child_state != nil {
+			for child, _ := range child_state {
+				r.Children = append(r.Children, child)
+			}
 		}
 
 		name_event := room.State[event.NewEventType("m.room.name")][""]
@@ -166,6 +176,19 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			topic, ok := topic_event.Content.Raw["topic"].(string)
 			if ok {
 				r.Topic = topic
+			}
+		}
+
+		join_rule_event := room.State[event.NewEventType("m.room.join_rules")][""]
+		if join_rule_event != nil {
+			join_rule, ok := join_rule_event.Content.Raw["join_rule"].(string)
+			if ok {
+
+				if join_rule != "public" {
+					continue
+				}
+
+				r.JoinRule = join_rule
 			}
 		}
 

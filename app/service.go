@@ -127,8 +127,7 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok && state != "world_readable" {
 					err = c.LeaveRoom(event.RoomID)
 					if err != nil {
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
+						c.Log.Error().Msgf("Error leaving room: %v", err)
 					}
 				}
 
