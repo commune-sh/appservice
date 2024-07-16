@@ -137,7 +137,8 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 	for _, room := range rooms {
 
 		r := PublicRoom{
-			RoomID: room.RoomID.String(),
+			RoomID:   room.RoomID.String(),
+			Children: []string{},
 		}
 
 		child_state := room.State[event.NewEventType("m.space.child")]
