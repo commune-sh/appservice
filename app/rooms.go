@@ -11,13 +11,14 @@ import (
 )
 
 type PublicRoom struct {
-	RoomID         string   `json:"room_id"`
-	Name           string   `json:"name"`
-	CanonicalAlias string   `json:"canonical_alias"`
-	AvatarURL      string   `json:"avatar_url"`
-	Topic          string   `json:"topic"`
-	JoinRule       string   `json:"join_rule"`
-	Children       []string `json:"children,omitempty"`
+	RoomID            string   `json:"room_id"`
+	Name              string   `json:"name"`
+	CanonicalAlias    string   `json:"canonical_alias"`
+	AvatarURL         string   `json:"avatar_url"`
+	Topic             string   `json:"topic"`
+	JoinRule          string   `json:"join_rule"`
+	HistoryVisibility string   `json:"history_visibility"`
+	Children          []string `json:"children,omitempty"`
 }
 
 type Rooms struct {
@@ -191,6 +192,16 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			topic, ok := topic_event.Content.Raw["topic"].(string)
 			if ok {
 				r.Topic = topic
+			}
+		}
+
+		// hacky way to get history visibility
+		var ev = event.Type{"m.room.history_visibility", 2}
+		hv_event := room.State[ev][""]
+		if hv_event != nil {
+			hv, ok := hv_event.Content.Raw["history_visibility"].(string)
+			if ok {
+				r.HistoryVisibility = hv
 			}
 		}
 
