@@ -12,13 +12,16 @@ import (
 
 type PublicRoom struct {
 	RoomID            string   `json:"room_id"`
-	Name              string   `json:"name"`
+	Type              string   `json:"type,omitempty"`
+	Name              string   `json:"name,omitempty"`
 	CanonicalAlias    string   `json:"canonical_alias"`
-	AvatarURL         string   `json:"avatar_url"`
-	Topic             string   `json:"topic"`
+	AvatarURL         string   `json:"avatar_url,omitempty"`
+	BannerURL         string   `json:"banner_url,omitempty"`
+	Topic             string   `json:"topic,omitempty"`
 	JoinRule          string   `json:"join_rule"`
 	HistoryVisibility string   `json:"history_visibility"`
 	Children          []string `json:"children,omitempty"`
+	Settings          any      `json:"settings,omitempty"`
 }
 
 type Rooms struct {
@@ -163,6 +166,14 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			}
 		}
 
+		room_type_event := room.State[event.NewEventType("m.room.create")][""]
+		if room_type_event != nil {
+			room_type, ok := room_type_event.Content.Raw["type"].(string)
+			if ok {
+				r.Type = room_type
+			}
+		}
+
 		name_event := room.State[event.NewEventType("m.room.name")][""]
 		if name_event != nil {
 			name, ok := name_event.Content.Raw["name"].(string)
@@ -196,7 +207,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		}
 
 		// hacky way to get history visibility
-		var ev = event.Type{"m.room.history_visibility", 2}
+		ev := event.Type{"m.room.history_visibility", 2}
 		hv_event := room.State[ev][""]
 		if hv_event != nil {
 			hv, ok := hv_event.Content.Raw["history_visibility"].(string)
@@ -204,6 +215,24 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 				r.HistoryVisibility = hv
 			}
 		}
+
+		// hacky way to get history visibility
+		ev = event.Type{"commune.room.banner", 2}
+		banner_event := room.State[ev][""]
+		if banner_event != nil {
+			banner, ok := banner_event.Content.Raw["url"].(string)
+			if ok {
+				r.BannerURL = banner
+			}
+		}
+
+		/*
+			ev = event.Type{"commune.room.settings", 2}
+			settings_event := room.State[ev][""]
+			if settings_event != nil {
+				r.Settings = settings_event.Content.Raw["settings"]
+			}
+		*/
 
 		join_rule_event := room.State[event.NewEventType("m.room.join_rules")][""]
 		if join_rule_event != nil {
