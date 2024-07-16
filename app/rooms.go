@@ -17,7 +17,7 @@ type PublicRoom struct {
 	AvatarURL      string   `json:"avatar_url"`
 	Topic          string   `json:"topic"`
 	JoinRule       string   `json:"join_rule"`
-	Children       []string `json:"children"`
+	Children       []string `json:"children,omitempty"`
 }
 
 type Rooms struct {
@@ -137,8 +137,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 	for _, room := range rooms {
 
 		r := PublicRoom{
-			RoomID:   room.RoomID.String(),
-			Children: []string{},
+			RoomID: room.RoomID.String(),
 		}
 
 		child_state := room.State[event.NewEventType("m.space.child")]
