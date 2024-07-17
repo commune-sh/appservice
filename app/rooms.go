@@ -13,6 +13,8 @@ import (
 type PublicRoom struct {
 	RoomID            string   `json:"room_id"`
 	Type              string   `json:"type,omitempty"`
+	OriginServerTS    int64    `json:"origin_server_ts"`
+	RoomType          string   `json:"room_type,omitempty"`
 	Name              string   `json:"name,omitempty"`
 	CanonicalAlias    string   `json:"canonical_alias"`
 	AvatarURL         string   `json:"avatar_url,omitempty"`
@@ -172,6 +174,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			if ok {
 				r.Type = room_type
 			}
+			r.OriginServerTS = room_type_event.Timestamp
 		}
 
 		name_event := room.State[event.NewEventType("m.room.name")][""]
@@ -223,6 +226,15 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			banner, ok := banner_event.Content.Raw["url"].(string)
 			if ok {
 				r.BannerURL = banner
+			}
+		}
+
+		ev = event.Type{"commune.room.type", 2}
+		rt_event := room.State[ev][""]
+		if rt_event != nil {
+			rtv, ok := rt_event.Content.Raw["type"].(string)
+			if ok {
+				r.RoomType = rtv
 			}
 		}
 
