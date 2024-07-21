@@ -17,6 +17,7 @@ type PublicRoom struct {
 	RoomType          string   `json:"room_type,omitempty"`
 	Name              string   `json:"name,omitempty"`
 	CanonicalAlias    string   `json:"canonical_alias"`
+	CommuneAlias      string   `json:"commune_alias,omitempty"`
 	AvatarURL         string   `json:"avatar_url,omitempty"`
 	BannerURL         string   `json:"banner_url,omitempty"`
 	Topic             string   `json:"topic,omitempty"`
@@ -157,11 +158,10 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 							if join_rule != "public" {
 								continue
 							}
-							r.JoinRule = join_rule
+							if ro.RoomID.String() == child {
+								r.Children = append(r.Children, child)
+							}
 						}
-					}
-					if ro.RoomID.String() == child {
-						r.Children = append(r.Children, child)
 					}
 				}
 
@@ -235,6 +235,15 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			rtv, ok := rt_event.Content.Raw["type"].(string)
 			if ok {
 				r.RoomType = rtv
+			}
+		}
+
+		ev = event.Type{"commune.room.alias", 2}
+		ca_event := room.State[ev][""]
+		if ca_event != nil {
+			calias, ok := ca_event.Content.Raw["alias"].(string)
+			if ok {
+				r.CommuneAlias = calias
 			}
 		}
 
