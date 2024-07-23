@@ -67,7 +67,6 @@ func routes(c *App) chi.Router {
 		r.Get("/state/*", c.MatrixAPIProxy())
 		r.Get("/joined_members", c.MatrixAPIProxy())
 		r.Get("/members", c.MatrixAPIProxy())
-		r.Get("/relations/*", c.MatrixAPIProxy())
 		r.Get("/timestamp_to_event", c.MatrixAPIProxy())
 		r.Route("/messages", func(r chi.Router) {
 			r.Get("/", c.MessagesProxy())
@@ -79,6 +78,7 @@ func routes(c *App) chi.Router {
 		r.Use(c.ValidatePublicRoom)
 		r.Get("/hierarchy", c.MatrixAPIProxy())
 		r.Get("/threads", c.MatrixAPIProxy())
+		r.Get("/relations/*", c.MatrixAPIProxy())
 	})
 
 	r.Route("/publicRooms", func(r chi.Router) {
