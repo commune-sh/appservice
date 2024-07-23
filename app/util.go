@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+func (c *App) IsLocalHomeserver(hs string) bool {
+	parts := strings.Split(hs, ":")
+	if parts[1] == c.Config.Matrix.ServerName {
+		return true
+	}
+	return false
+}
+
 func Contains[T comparable](slice []T, element T) bool {
 	for _, v := range slice {
 		if v == element {

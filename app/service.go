@@ -140,11 +140,20 @@ func (c *App) Transactions() http.HandlerFunc {
 				if ok {
 					if state == "invite" {
 						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
-						err = c.ProcessRoom(event.RoomID)
-						if err != nil {
-							//http.Error(w, err.Error(), http.StatusInternalServerError)
-							//return
+
+						is_local := c.IsLocalHomeserver(event.RoomID.String())
+
+						if is_local {
+
+							err = c.ProcessRoom(event.RoomID)
+							if err != nil {
+								//http.Error(w, err.Error(), http.StatusInternalServerError)
+								//return
+							}
+						} else {
+							c.Log.Info().Msgf("Not local room, ignoring join: %v", event.RoomID.String())
 						}
+
 					}
 					if state == "leave" || state == "ban" {
 						err := c.RemoveRoomFromCache(event.RoomID)
