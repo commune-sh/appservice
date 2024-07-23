@@ -238,21 +238,21 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			}
 		}
 
-		ev = event.Type{"commune.room.alias", 2}
-		ca_event := room.State[ev][""]
-		if ca_event != nil {
-			calias, ok := ca_event.Content.Raw["alias"].(string)
-			if ok {
-				r.CommuneAlias = calias
-			}
-		}
-
 		/*
-			ev = event.Type{"commune.room.settings", 2}
-			settings_event := room.State[ev][""]
-			if settings_event != nil {
-				r.Settings = settings_event.Content.Raw["settings"]
+			ev = event.Type{"commune.room.alias", 2}
+			ca_event := room.State[ev][""]
+			if ca_event != nil {
+				calias, ok := ca_event.Content.Raw["alias"].(string)
+				if ok {
+					r.CommuneAlias = calias
+				}
 			}
+
+				ev = event.Type{"commune.room.settings", 2}
+				settings_event := room.State[ev][""]
+				if settings_event != nil {
+					r.Settings = settings_event.Content.Raw["settings"]
+				}
 		*/
 
 		join_rule_event := room.State[event.NewEventType("m.room.join_rules")][""]
