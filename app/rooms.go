@@ -25,6 +25,7 @@ type PublicRoom struct {
 	HistoryVisibility string   `json:"history_visibility"`
 	Children          []string `json:"children,omitempty"`
 	Settings          any      `json:"settings,omitempty"`
+	RoomCategories    any      `json:"room_categories,omitempty"`
 }
 
 type Rooms struct {
@@ -239,20 +240,27 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		}
 
 		/*
-			ev = event.Type{"commune.room.alias", 2}
-			ca_event := room.State[ev][""]
-			if ca_event != nil {
-				calias, ok := ca_event.Content.Raw["alias"].(string)
-				if ok {
-					r.CommuneAlias = calias
+				ev = event.Type{"commune.room.alias", 2}
+				ca_event := room.State[ev][""]
+				if ca_event != nil {
+					calias, ok := ca_event.Content.Raw["alias"].(string)
+					if ok {
+						r.CommuneAlias = calias
+					}
 				}
+
+					ev = event.Type{"commune.room.settings", 2}
+					settings_event := room.State[ev][""]
+					if settings_event != nil {
+						r.Settings = settings_event.Content.Raw["settings"]
+					}
+
+			ev = event.Type{"commune.room.categories", 2}
+			rc_event := room.State[ev][""]
+			if rc_event != nil {
+				r.RoomCategories = rc_event.Content.Raw["categories"]
 			}
 
-				ev = event.Type{"commune.room.settings", 2}
-				settings_event := room.State[ev][""]
-				if settings_event != nil {
-					r.Settings = settings_event.Content.Raw["settings"]
-				}
 		*/
 
 		join_rule_event := room.State[event.NewEventType("m.room.join_rules")][""]
@@ -315,6 +323,15 @@ func (c *App) GetRoomInfo(room_id string) (*PublicRoom, error) {
 		topic, ok := topic_event.Content.Raw["topic"].(string)
 		if ok {
 			room.Topic = topic
+		}
+	}
+
+	ev := event.Type{"commune.room.banner", 2}
+	banner_event := state[ev][""]
+	if banner_event != nil {
+		banner, ok := banner_event.Content.Raw["url"].(string)
+		if ok {
+			room.BannerURL = banner
 		}
 	}
 
