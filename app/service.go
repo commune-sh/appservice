@@ -36,24 +36,26 @@ func (c *App) LeaveRoom(room_id id.RoomID) error {
 
 func (c *App) ProcessRoom(room_id id.RoomID) error {
 
-	state, err := c.Matrix.State(context.Background(), room_id)
-	if err != nil {
-		c.Log.Error().Msgf("Error fetching state: %v", err)
-		return err
-	}
+	/*
+		state, err := c.Matrix.State(context.Background(), room_id)
+		if err != nil {
+			c.Log.Error().Msgf("Error fetching state: %v", err)
+			return err
+		}
 
-	has_children := event.NewEventType("m.space.child")
-	has_parent := event.NewEventType("m.space.parent")
+		has_children := event.NewEventType("m.space.child")
+		has_parent := event.NewEventType("m.space.parent")
 
-	is_parent_space := len(state[has_children]) > 0
-	is_child_space := len(state[has_parent]) > 0
+		is_parent_space := len(state[has_children]) > 0
+		is_child_space := len(state[has_parent]) > 0
 
-	if !is_parent_space || is_child_space {
-		//return nil
-	}
+		if !is_parent_space || is_child_space {
+			//return nil
+		}
+	*/
 
 	c.Log.Info().Msgf("Joining room: %v", room_id.String())
-	err = c.JoinRoom(room_id)
+	err := c.JoinRoom(room_id)
 	if err != nil {
 		return err
 	}
@@ -126,12 +128,14 @@ func (c *App) Transactions() http.HandlerFunc {
 					}
 				}
 
-				if ok && state != "world_readable" {
-					err = c.LeaveRoom(event.RoomID)
-					if err != nil {
-						c.Log.Error().Msgf("Error leaving room: %v", err)
+				/*
+					if ok && state != "world_readable" {
+						err = c.LeaveRoom(event.RoomID)
+						if err != nil {
+							c.Log.Error().Msgf("Error leaving room: %v", err)
+						}
 					}
-				}
+				*/
 
 			case "m.room.member":
 

@@ -8,11 +8,7 @@ import (
 )
 
 func (c *App) IsLocalHomeserver(hs string) bool {
-	parts := strings.Split(hs, ":")
-	if parts[1] == c.Config.Matrix.ServerName {
-		return true
-	}
-	return false
+	return strings.HasSuffix(hs, c.Config.Matrix.ServerName)
 }
 
 func Contains[T comparable](slice []T, element T) bool {
