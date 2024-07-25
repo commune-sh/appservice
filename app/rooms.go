@@ -150,7 +150,14 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 
 		child_state := room.State[event.NewEventType("m.space.child")]
 		if child_state != nil {
-			for child, _ := range child_state {
+			for child, ev := range child_state {
+
+				// don't list child spaces with empty content
+				via := ev.Content.Raw["via"]
+				if via == nil {
+					continue
+				}
+
 				for _, ro := range rooms {
 					join_rule_event := ro.State[event.NewEventType("m.room.join_rules")][""]
 					if join_rule_event != nil {
