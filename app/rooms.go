@@ -268,9 +268,11 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			join_rule, ok := join_rule_event.Content.Raw["join_rule"].(string)
 			if ok {
 
-				if join_rule != "public" {
-					continue
-				}
+				/*
+					if join_rule != "public" {
+						continue
+					}
+				*/
 
 				r.JoinRule = join_rule
 			}
