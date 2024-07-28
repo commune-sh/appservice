@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"maunium.net/go/mautrix/id"
@@ -143,7 +144,7 @@ func (c *App) CachePublicRooms(public_rooms any) error {
 		return err
 	}
 
-	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, 0).Err()
+	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, 4*time.Hour).Err()
 	if err != nil {
 		c.Log.Error().Msgf("Couldn't cache public rooms %v", err)
 		return err
@@ -193,7 +194,7 @@ func (c *App) UpdateRoomInfoCache(room_id string) error {
 
 func (c *App) CacheRoomMessages(room_id string) error {
 	c.Log.Info().Msgf("Caching messages for room: %v", room_id)
-	messages, err := c.Matrix.Messages(context.Background(), id.RoomID(room_id), "", "", 'b', nil, 0)
+	messages, err := c.Matrix.Messages(context.Background(), id.RoomID(room_id), "", "", 'b', nil, 100)
 	if err != nil {
 		c.Log.Error().Msgf("Error fetching messages: %v", err)
 		return err
@@ -205,7 +206,7 @@ func (c *App) CacheRoomMessages(room_id string) error {
 		return err
 	}
 
-	err = c.Cache.Messages.Set(context.Background(), room_id, json, 0).Err()
+	err = c.Cache.Messages.Set(context.Background(), room_id, json, 60*time.Minute).Err()
 	if err != nil {
 		c.Log.Error().Msgf("Couldn't cache messages %v", err)
 		return err

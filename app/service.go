@@ -114,10 +114,13 @@ func (c *App) Transactions() http.HandlerFunc {
 					err := c.CacheRoomMessages(event.RoomID.String())
 					if err != nil {
 						c.Log.Error().Msgf("Error caching messages: %v", err)
-						//http.Error(w, err.Error(), http.StatusInternalServerError)
-						//return
 					}
 				*/
+			case "m.room.redaction":
+				err := c.CacheRoomMessages(event.RoomID.String())
+				if err != nil {
+					c.Log.Error().Msgf("Error caching messages: %v", err)
+				}
 			case "m.room.history_visibility":
 				state, ok := event.Content.Raw["history_visibility"].(string)
 
