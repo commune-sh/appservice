@@ -370,7 +370,7 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		child_room := r.URL.Query().Get("room")
 
-		event_id := r.URL.Query().Get("event_id")
+		event_id := r.URL.Query().Get("event")
 
 		/*
 			// check if it's cached
@@ -418,6 +418,8 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			"info": info,
 		}
 
+		room := RoomInfo{}
+
 		if child_room != "" {
 
 			hierarchy, err := c.Matrix.Hierarchy(context.Background(), id.RoomID(room_id), nil)
@@ -433,7 +435,7 @@ func (c *App) RoomInfo() http.HandlerFunc {
 					slug := Slugify(child.Name)
 					if slug == child_room || child.RoomID.String() == child_room {
 
-						room := RoomInfo{
+						room = RoomInfo{
 							RoomID:    child.RoomID.String(),
 							Name:      child.Name,
 							Topic:     child.Topic,
@@ -446,8 +448,25 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			}
 		}
 
-		if event_id != "" {
-			o.EventID = event_id
+		if event_id != "" && room.RoomID != "" {
+
+			event, err := c.Matrix.GetEvent(context.Background(), id.RoomID(room.RoomID), id.EventID(event_id))
+			if err != nil {
+				c.Log.Error().Msgf("Error fetching event: %v", err)
+			}
+			if event != nil {
+				c.Log.Info().Msgf("Event: %v", event)
+				resp["event"] = event
+			}
+			if event != nil {
+				profile, err := c.Matrix.GetProfile(context.Background(), event.Sender)
+				if err != nil {
+					c.Log.Error().Msgf("Error fetching profile: %v", err)
+				}
+				if profile != nil {
+					resp["sender"] = profile
+				}
+			}
 		}
 
 		RespondWithJSON(w, &JSONResponse{
