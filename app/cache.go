@@ -14,6 +14,7 @@ type Cache struct {
 	Rooms    *redis.Client
 	Events   *redis.Client
 	Messages *redis.Client
+	State    *redis.Client
 }
 
 func NewCache(conf *config.Config) (*Cache, error) {
@@ -51,10 +52,22 @@ func NewCache(conf *config.Config) (*Cache, error) {
 		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
 	}
 
+	sdb := redis.NewClient(&redis.Options{
+		Addr:     conf.Redis.Address,
+		Password: conf.Redis.Password,
+		DB:       conf.Redis.StateDB,
+	})
+
+	_, err = sdb.Ping(context.Background()).Result()
+	if err != nil {
+		panic(fmt.Sprintf("Could not connect to Redis: %v", err))
+	}
+
 	c := &Cache{
 		Rooms:    rdb,
 		Events:   edb,
 		Messages: mdb,
+		State:    sdb,
 	}
 
 	return c, nil
@@ -69,7 +82,7 @@ func (c *App) CacheEvent(event_id id.EventID, event any) error {
 	return nil
 }
 
-func (c *App) AddRoomToCache(room *PublicRoom) error {
+func (c *App) AddRoomToCache(room *RoomInfo) error {
 
 	i, err := json.Marshal(room)
 	if err != nil {
@@ -98,7 +111,9 @@ func (c *App) RemoveRoomFromCache(room_id id.RoomID) error {
 
 	c.Log.Info().Msgf("Removing room from cache: %v", room_id)
 
-	room, err := c.GetRoomInfo(room_id.String())
+	room, err := c.GetRoomInfo(&RoomInfoOptions{
+		RoomID: room_id.String(),
+	})
 	if err != nil {
 		return err
 	}
@@ -159,7 +174,9 @@ func (c *App) RebuildPublicRoomsCache() error {
 }
 
 func (c *App) UpdateRoomInfoCache(room_id string) error {
-	info, err := c.GetRoomInfo(room_id)
+	info, err := c.GetRoomInfo(&RoomInfoOptions{
+		RoomID: room_id,
+	})
 
 	if err != nil {
 		return err

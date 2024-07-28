@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -291,16 +292,31 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 	return processed, nil
 }
 
-func (c *App) GetRoomInfo(room_id string) (*PublicRoom, error) {
+type RoomInfo struct {
+	RoomID         string `json:"room_id"`
+	Name           string `json:"name,omitempty"`
+	CanonicalAlias string `json:"canonical_alias"`
+	AvatarURL      string `json:"avatar_url,omitempty"`
+	BannerURL      string `json:"banner_url,omitempty"`
+	Topic          string `json:"topic,omitempty"`
+}
 
-	state, err := c.Matrix.State(context.Background(), id.RoomID(room_id))
+type RoomInfoOptions struct {
+	RoomID      string
+	ChildRoomID string
+	EventID     string
+}
+
+func (c *App) GetRoomInfo(r *RoomInfoOptions) (*RoomInfo, error) {
+
+	state, err := c.Matrix.State(context.Background(), id.RoomID(r.RoomID))
 
 	if err != nil {
 		return nil, err
 	}
 
-	room := PublicRoom{
-		RoomID: room_id,
+	room := RoomInfo{
+		RoomID: r.RoomID,
 	}
 
 	name_event := state[event.NewEventType("m.room.name")][""]
@@ -352,6 +368,10 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 		room_id := chi.URLParam(r, "room_id")
 
+		child_room := r.URL.Query().Get("room")
+
+		event_id := r.URL.Query().Get("event_id")
+
 		/*
 			// check if it's cached
 			cached, err := c.Cache.Rooms.Get(context.Background(), room_id).Result()
@@ -369,8 +389,11 @@ func (c *App) RoomInfo() http.HandlerFunc {
 
 			}
 		*/
+		o := &RoomInfoOptions{
+			RoomID: room_id,
+		}
 
-		info, err := c.GetRoomInfo(room_id)
+		info, err := c.GetRoomInfo(o)
 
 		if err != nil {
 			RespondWithError(w, &JSONResponse{
@@ -391,9 +414,45 @@ func (c *App) RoomInfo() http.HandlerFunc {
 			}()
 		*/
 
+		resp := map[string]any{
+			"info": info,
+		}
+
+		if child_room != "" {
+
+			hierarchy, err := c.Matrix.Hierarchy(context.Background(), id.RoomID(room_id), nil)
+
+			if err != nil {
+				c.Log.Error().Msgf("Error fetching room hierarchy: %v", err)
+			}
+
+			if hierarchy != nil {
+				//c.Log.Info().Msgf("Room hierarchy: %v", hierarchy)
+
+				for _, child := range hierarchy.Rooms {
+					slug := Slugify(child.Name)
+					if slug == child_room || child.RoomID.String() == child_room {
+
+						room := RoomInfo{
+							RoomID:    child.RoomID.String(),
+							Name:      child.Name,
+							Topic:     child.Topic,
+							AvatarURL: fmt.Sprintf("mxc://%s/%s", child.AvatarURL.Homeserver, child.AvatarURL.FileID),
+						}
+
+						resp["room"] = room
+					}
+				}
+			}
+		}
+
+		if event_id != "" {
+			o.EventID = event_id
+		}
+
 		RespondWithJSON(w, &JSONResponse{
 			Code: http.StatusOK,
-			JSON: info,
+			JSON: resp,
 		})
 	}
 }

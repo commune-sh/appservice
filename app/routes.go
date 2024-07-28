@@ -63,7 +63,9 @@ func routes(c *App) chi.Router {
 		r.Get("/info", c.RoomInfo())
 		r.Get("/aliases", c.MatrixAPIProxy())
 		r.Get("/event/*", c.MatrixAPIProxy())
-		r.Get("/state", c.MatrixAPIProxy())
+		r.Route("/state", func(r chi.Router) {
+			r.Get("/", c.StateProxy())
+		})
 		r.Get("/state/*", c.MatrixAPIProxy())
 		r.Get("/joined_members", c.MatrixAPIProxy())
 		r.Get("/members", c.MatrixAPIProxy())

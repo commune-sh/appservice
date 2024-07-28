@@ -38,6 +38,7 @@ type Config struct {
 		RoomsDB    int    `toml:"rooms_db" json:"rooms_db"`
 		MessagesDB int    `toml:"messages_db" json:"messages_db"`
 		EventsDB   int    `toml:"events_db" json:"events_db"`
+		StateDB    int    `toml:"state_db" json:"state_db"`
 	} `json:"redis" toml:"redis"`
 	Security struct {
 		AllowedOrigins []string `toml:"allowed_origins" json:"allowed_origins"`

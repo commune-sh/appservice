@@ -60,7 +60,9 @@ func (c *App) ProcessRoom(room_id id.RoomID) error {
 		return err
 	}
 
-	info, err := c.GetRoomInfo(room_id.String())
+	info, err := c.GetRoomInfo(&RoomInfoOptions{
+		RoomID: room_id.String(),
+	})
 	if err != nil {
 		return err
 	}

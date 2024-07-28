@@ -45,3 +45,9 @@ func ExtractAccessToken(req *http.Request) (*string, error) {
 
 	return nil, errors.New("Missing access token.")
 }
+
+func Slugify(s string) string {
+	reg := regexp.MustCompile("[^a-zA-Z0-9]+")
+	p := reg.ReplaceAllString(s, "-")
+	return strings.ToLower(p)
+}

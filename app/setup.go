@@ -20,7 +20,9 @@ func (c *App) Setup() {
 	if len(rooms.JoinedRooms) > 0 {
 		for _, room_id := range rooms.JoinedRooms {
 
-			info, err := c.GetRoomInfo(room_id.String())
+			info, err := c.GetRoomInfo(&RoomInfoOptions{
+				RoomID: room_id.String(),
+			})
 			if err != nil {
 				c.Log.Error().Msgf("Error fetching room info: %v", err)
 			}

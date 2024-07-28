@@ -1,30 +1,17 @@
 package app
 
 import (
-	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
-type CachingResponseWriter struct {
-	http.ResponseWriter
-	statusCode int
-	body       bytes.Buffer
-}
-
-func (w *CachingResponseWriter) WriteHeader(statusCode int) {
-	w.statusCode = statusCode
-	w.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (w *CachingResponseWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
-	return w.ResponseWriter.Write(b)
-}
-
-func (c *App) MessagesProxy() http.HandlerFunc {
+func (c *App) StateProxy() http.HandlerFunc {
 
 	endpoint := fmt.Sprintf("%s/", c.Config.Matrix.Homeserver)
 	target, _ := url.Parse(endpoint)
@@ -33,8 +20,8 @@ func (c *App) MessagesProxy() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		room_id := chi.URLParam(r, "room_id")
 		/*
-			room_id := chi.URLParam(r, "room_id")
 			from := r.URL.Query().Get("from")
 			to := r.URL.Query().Get("to")
 		*/
@@ -60,14 +47,12 @@ func (c *App) MessagesProxy() http.HandlerFunc {
 
 		if crw.statusCode == http.StatusOK {
 			// cache messages
-			/*
-				if from == "" && to == "" {
-					err := c.Cache.Messages.Set(context.Background(), room_id, crw.body.String(), 5*time.Minute).Err()
-					if err != nil {
-						c.Log.Error().Msgf("Couldn't cache messages %v", err)
-					}
-				}
-			*/
+			err := c.Cache.State.Set(context.Background(), room_id, crw.body.String(), 60*time.Minute).Err()
+			if err != nil {
+				c.Log.Error().Msgf("Couldn't cache state %v", err)
+			} else {
+				c.Log.Info().Msgf("Cached state for room %v", room_id)
+			}
 		}
 	}
 }
