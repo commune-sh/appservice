@@ -128,6 +128,8 @@ func Start(s *StartRequest) {
 
 	c.Routes()
 
+	go c.HandleBroadcast()
+
 	// c.Build()
 
 	// go c.Cron.AddFunc("*/15 * * * *", c.RefreshCache)

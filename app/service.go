@@ -96,6 +96,8 @@ func (c *App) Transactions() http.HandlerFunc {
 
 		for _, event := range events.Events {
 
+			Broadcast <- &event
+
 			go func() {
 				json, err := json.Marshal(event)
 				if err != nil {

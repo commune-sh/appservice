@@ -87,6 +87,10 @@ func routes(c *App) chi.Router {
 		r.Get("/", c.PublicRooms())
 	})
 
+	r.Route("/sync", func(r chi.Router) {
+		r.Get("/", c.Sync())
+	})
+
 	r.Route("/health", func(r chi.Router) {
 		r.Get("/", c.Health())
 	})
