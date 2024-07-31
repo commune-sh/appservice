@@ -20,6 +20,7 @@ type PublicRoom struct {
 	Name              string   `json:"name,omitempty"`
 	CanonicalAlias    string   `json:"canonical_alias"`
 	CommuneAlias      string   `json:"commune_alias,omitempty"`
+	Sender            string   `json:"sender,omitempty"`
 	AvatarURL         string   `json:"avatar_url,omitempty"`
 	BannerURL         string   `json:"banner_url,omitempty"`
 	Topic             string   `json:"topic,omitempty"`
@@ -180,6 +181,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			if ok {
 				r.Type = room_type
 			}
+			r.Sender = room_type_event.Sender.String()
 			r.OriginServerTS = room_type_event.Timestamp
 		}
 
