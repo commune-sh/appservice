@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"maunium.net/go/mautrix"
@@ -193,6 +194,9 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		if name_event != nil {
 			name, ok := name_event.Content.Raw["name"].(string)
 			if ok {
+				if strings.Contains(name, "[⛓️]") {
+					continue
+				}
 				r.Name = name
 			}
 		}
