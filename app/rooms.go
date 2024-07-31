@@ -29,6 +29,7 @@ type PublicRoom struct {
 	Children          []string `json:"children,omitempty"`
 	Settings          any      `json:"settings,omitempty"`
 	RoomCategories    any      `json:"room_categories,omitempty"`
+	IsBridge          bool     `json:"is_bridge"`
 }
 
 type Rooms struct {
@@ -146,6 +147,9 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		r := PublicRoom{
 			RoomID: room.RoomID.String(),
 		}
+
+		bridge := CouldBeBridge(room.State)
+		r.IsBridge = bridge
 
 		child_state := room.State[event.NewEventType("m.space.child")]
 		if child_state != nil {

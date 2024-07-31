@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+
+	"maunium.net/go/mautrix"
+	"maunium.net/go/mautrix/event"
 )
 
 func (c *App) IsLocalHomeserver(hs string) bool {
@@ -50,4 +53,24 @@ func Slugify(s string) string {
 	reg := regexp.MustCompile("[^a-zA-Z0-9]+")
 	p := reg.ReplaceAllString(s, "-")
 	return strings.ToLower(p)
+}
+
+func CouldBeBridge(state mautrix.RoomStateMap) bool {
+	bridge_types := []string{
+		"m.bridge",
+		"m.room.bridged",
+		"m.room.discord",
+		"m.room.irc",
+		"uk.half-shot.bridge",
+	}
+
+	for _, t := range bridge_types {
+		ev := event.Type{t, 2}
+		exists := state[ev]
+		if len(exists) > 0 {
+			return true
+		}
+	}
+
+	return false
 }
