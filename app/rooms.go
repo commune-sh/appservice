@@ -201,6 +201,15 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 			}
 		}
 
+		ev := event.Type{"commune.room.name", 2}
+		name_event = room.State[ev][""]
+		if name_event != nil {
+			name, ok := name_event.Content.Raw["name"].(string)
+			if ok {
+				r.Name = name
+			}
+		}
+
 		alias_event := room.State[event.NewEventType("m.room.canonical_alias")][""]
 		if alias_event != nil {
 			alias, ok := alias_event.Content.Raw["alias"].(string)
@@ -226,7 +235,7 @@ func ProcessPublicRooms(rooms []*PublicRooms) ([]PublicRoom, error) {
 		}
 
 		// hacky way to get history visibility
-		ev := event.Type{"m.room.history_visibility", 2}
+		ev = event.Type{"m.room.history_visibility", 2}
 		hv_event := room.State[ev][""]
 		if hv_event != nil {
 			hv, ok := hv_event.Content.Raw["history_visibility"].(string)
