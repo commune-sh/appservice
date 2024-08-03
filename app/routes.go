@@ -63,6 +63,7 @@ func routes(c *App) chi.Router {
 		r.Get("/info", c.RoomInfo())
 		r.Get("/aliases", c.MatrixAPIProxy())
 		r.Get("/event/*", c.MatrixAPIProxy())
+		r.Get("/context/*", c.MatrixAPIProxy())
 		r.Route("/state", func(r chi.Router) {
 			r.Get("/", c.StateProxy())
 		})
