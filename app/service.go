@@ -154,6 +154,7 @@ func (c *App) Transactions() http.HandlerFunc {
 
 						is_local := c.IsLocalHomeserver(event.RoomID.String())
 						not_restricted := c.IsNotRestricted(event.RoomID.String())
+						c.Log.Info().Msgf("restricted?: %v", not_restricted)
 
 						if is_local || not_restricted {
 

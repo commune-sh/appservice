@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -14,16 +15,24 @@ func (c *App) IsLocalHomeserver(hs string) bool {
 	return strings.HasSuffix(hs, c.Config.Matrix.ServerName)
 }
 
-func (c *App) IsNotRestricted(hs string) bool {
+func (c *App) IsNotRestricted(roomID string) bool {
+	log.Println(c.Config.AppService.Rules.FederationDomainWhitelist)
 	if len(c.Config.AppService.Rules.FederationDomainWhitelist) == 0 {
 		return false
 	}
 	if c.Config.AppService.Rules.FederationDomainWhitelist[0] == "*" {
 		return true
 	}
-	localpart := strings.Split(hs, ":")[1]
-	for _, r := range c.Config.AppService.Rules.FederationDomainWhitelist {
-		if r == localpart {
+
+	index := strings.Index(roomID, ":")
+	if index == -1 {
+		return false
+	}
+
+	server_name := roomID[index+1:]
+
+	for _, domain := range c.Config.AppService.Rules.FederationDomainWhitelist {
+		if domain == server_name {
 			return true
 		}
 	}
