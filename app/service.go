@@ -153,8 +153,9 @@ func (c *App) Transactions() http.HandlerFunc {
 						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
 
 						is_local := c.IsLocalHomeserver(event.RoomID.String())
+						not_restricted := c.IsNotRestricted(event.RoomID.String())
 
-						if is_local {
+						if is_local || not_restricted {
 
 							err = c.ProcessRoom(event.RoomID)
 							if err != nil {

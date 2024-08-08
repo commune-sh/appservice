@@ -17,6 +17,11 @@ hs_access_token = "homeserver_access_token"
 [appservice.rules]
 # Will join every newly created room
 auto_join = true
+# Restrict federated homeservers
+# Leave empty to restrict all federated homeservers
+# Example: ["matrix.org"]
+# Use ["*"] to allow all federated homeservers
+federation_domain_whitelist = ["matrix.org"]
 
 
 [matrix]

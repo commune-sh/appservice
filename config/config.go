@@ -18,7 +18,8 @@ type Config struct {
 		AccessToken     string `json:"access_token" toml:"access_token"`
 		HSAccessToken   string `json:"hs_access_token" toml:"hs_access_token"`
 		Rules           struct {
-			AutoJoin bool `json:"auto_join" toml:"auto_join"`
+			AutoJoin                  bool     `json:"auto_join" toml:"auto_join"`
+			FederationDomainWhitelist []string `json:"federation_domain_whitelist" toml:"federation_domain_whitelist"`
 		} `json:"rules" toml:"rules"`
 	} `json:"appservice" toml:"appservice"`
 	Log struct {

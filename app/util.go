@@ -14,6 +14,22 @@ func (c *App) IsLocalHomeserver(hs string) bool {
 	return strings.HasSuffix(hs, c.Config.Matrix.ServerName)
 }
 
+func (c *App) IsNotRestricted(hs string) bool {
+	if len(c.Config.AppService.Rules.FederationDomainWhitelist) == 0 {
+		return false
+	}
+	if c.Config.AppService.Rules.FederationDomainWhitelist[0] == "*" {
+		return true
+	}
+	localpart := strings.Split(hs, ":")[1]
+	for _, r := range c.Config.AppService.Rules.FederationDomainWhitelist {
+		if r == localpart {
+			return true
+		}
+	}
+	return false
+}
+
 func Contains[T comparable](slice []T, element T) bool {
 	for _, v := range slice {
 		if v == element {
