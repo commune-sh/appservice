@@ -15,6 +15,18 @@ func (c *App) IsLocalHomeserver(hs string) bool {
 	return strings.HasSuffix(hs, c.Config.Matrix.ServerName)
 }
 
+func (c *App) IsInviterLocal(user, room string) bool {
+	return GetDomain(user) == GetDomain(room)
+}
+
+func GetDomain(roomID string) string {
+	index := strings.Index(roomID, ":")
+	if index == -1 {
+		return ""
+	}
+	return roomID[index+1:]
+}
+
 func (c *App) IsNotRestricted(roomID string) bool {
 	log.Println(c.Config.AppService.Rules.FederationDomainWhitelist)
 	if len(c.Config.AppService.Rules.FederationDomainWhitelist) == 0 {

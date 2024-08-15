@@ -17,6 +17,8 @@ hs_access_token = "homeserver_access_token"
 [appservice.rules]
 # Will join every newly created room
 auto_join = true
+# Will only join if invited by user local to the room's homeserver
+invite_by_local_user = true
 # Restrict federated homeservers
 # Leave empty to restrict all federated homeservers
 # Example: ["matrix.org"]

@@ -152,11 +152,23 @@ func (c *App) Transactions() http.HandlerFunc {
 					if state == "invite" {
 						c.Log.Info().Msgf("Invited to room: %v", event.RoomID.String())
 
-						is_local := c.IsLocalHomeserver(event.RoomID.String())
+						// check if room is local
+						room_is_local := c.IsLocalHomeserver(event.RoomID.String())
+						// check if room is restricted in config
 						not_restricted := c.IsNotRestricted(event.RoomID.String())
-						c.Log.Info().Msgf("restricted?: %v", not_restricted)
+						// check if inviter is local to room's homeserver
+						local_user := c.IsInviterLocal(event.Sender.String(), event.RoomID.String())
 
-						if is_local || not_restricted {
+						c.Log.Info().Msgf("inviter local to room?: %v", local_user)
+
+						join_room := room_is_local || not_restricted
+
+						// if invite by local user is enabled, only join if inviter is local
+						if c.Config.AppService.Rules.InviteByLocalUser && !local_user {
+							join_room = false
+						}
+
+						if join_room {
 
 							err = c.ProcessRoom(event.RoomID)
 							if err != nil {
@@ -168,6 +180,7 @@ func (c *App) Transactions() http.HandlerFunc {
 						}
 
 					}
+
 					if state == "leave" || state == "ban" {
 						err := c.RemoveRoomFromCache(event.RoomID)
 						if err != nil {
