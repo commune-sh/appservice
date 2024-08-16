@@ -40,6 +40,21 @@ messages_db = 2
 events_db = 3
 state_db = 3
 
+# Cache public rooms
+[cache.public_rooms]
+enabled = true
+expire_after = 14400 # defaults to 4 hours if not set
+
+# Cache all room state events
+[cache.room_state]
+enabled = true
+expire_after = 3600 # defaults to 1 hour if not set
+
+# Cache room messages
+[cache.messages]
+enabled = false
+expire_after = 3600 # defaults to 1 hour if not set
+
 [security]
 # This should include the domain you'll run this server on, and any other
 # domains you want to allow for local development

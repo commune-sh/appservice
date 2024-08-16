@@ -143,8 +143,15 @@ func (c *App) CachePublicRooms(public_rooms any) error {
 		c.Log.Error().Msgf("Couldn't marshal public rooms %v", err)
 		return err
 	}
+	ttl := c.Config.Cache.PublicRooms.ExpireAfter
+	if ttl == 0 {
+		c.Log.Info().Msg("No TTL in config, using default value: 3600")
+		ttl = 3600
+	}
 
-	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, 4*time.Hour).Err()
+	expire := time.Duration(ttl) * time.Second
+
+	err = c.Cache.Rooms.Set(context.Background(), "public_rooms", json, expire).Err()
 	if err != nil {
 		c.Log.Error().Msgf("Couldn't cache public rooms %v", err)
 		return err

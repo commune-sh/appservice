@@ -45,7 +45,7 @@ func (c *App) MessagesProxy() http.HandlerFunc {
 		w.Header().Del("Access-Control-Allow-Origin")
 
 		// return cached messages if no query params
-		if from == "" && to == "" {
+		if from == "" && to == "" && c.Config.Cache.Messages.Enabled {
 			cached, err := c.Cache.Messages.Get(context.Background(), room_id).Result()
 			if err == nil && cached != "" {
 				c.Log.Info().Msgf("Found cached messages")
@@ -61,8 +61,17 @@ func (c *App) MessagesProxy() http.HandlerFunc {
 
 		if crw.statusCode == http.StatusOK {
 			// cache messages
-			if from == "" && to == "" {
-				err := c.Cache.Messages.Set(context.Background(), room_id, crw.body.String(), 60*time.Minute).Err()
+			if from == "" && to == "" && c.Config.Cache.Messages.Enabled {
+
+				ttl := c.Config.Cache.Messages.ExpireAfter
+				if ttl == 0 {
+					c.Log.Info().Msg("No TTL in config, using default value: 3600")
+					ttl = 3600
+				}
+
+				expire := time.Duration(ttl) * time.Second
+
+				err := c.Cache.Messages.Set(context.Background(), room_id, crw.body.String(), expire).Err()
 				if err != nil {
 					c.Log.Error().Msgf("Couldn't cache messages %v", err)
 				}

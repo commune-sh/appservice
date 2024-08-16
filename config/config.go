@@ -9,42 +9,56 @@ import (
 
 type Config struct {
 	App struct {
-		Domain string `toml:"domain" json:"domain"`
-		Port   int    `toml:"port" json:"port"`
+		Domain string `toml:"domain"`
+		Port   int    `toml:"port"`
 	} `toml:"app" json:"app"`
 	AppService struct {
-		ID              string `json:"id" toml:"id"`
-		SenderLocalPart string `json:"sender_local_part" toml:"sender_local_part"`
-		AccessToken     string `json:"access_token" toml:"access_token"`
-		HSAccessToken   string `json:"hs_access_token" toml:"hs_access_token"`
+		ID              string `toml:"id"`
+		SenderLocalPart string `toml:"sender_local_part"`
+		AccessToken     string `toml:"access_token"`
+		HSAccessToken   string `toml:"hs_access_token"`
 		Rules           struct {
-			AutoJoin                  bool     `json:"auto_join" toml:"auto_join"`
-			InviteByLocalUser         bool     `json:"invite_by_local_user" toml:"invite_by_local_user"`
-			FederationDomainWhitelist []string `json:"federation_domain_whitelist" toml:"federation_domain_whitelist"`
-		} `json:"rules" toml:"rules"`
-	} `json:"appservice" toml:"appservice"`
+			AutoJoin                  bool     `toml:"auto_join"`
+			InviteByLocalUser         bool     `toml:"invite_by_local_user"`
+			FederationDomainWhitelist []string `toml:"federation_domain_whitelist"`
+		} `toml:"rules"`
+	} `toml:"appservice"`
 	Log struct {
-		File       string `toml:"file" json:"file"`
-		MaxSize    int    `toml:"max_size" json:"max_size"`
-		MaxBackups int    `toml:"max_backups" json:"max_backups"`
-		MaxAge     int    `toml:"max_age" json:"max_age"`
-		Compress   bool   `toml:"compress" json:"compress"`
+		File       string `toml:"file"`
+		MaxSize    int    `toml:"max_size"`
+		MaxBackups int    `toml:"max_backups"`
+		MaxAge     int    `toml:"max_age"`
+		Compress   bool   `toml:"compress"`
 	} `json:"log" toml:"log"`
 	Matrix struct {
-		Homeserver string `toml:"homeserver" json:"homeserver"`
-		ServerName string `toml:"server_name" json:"server_name"`
+		Homeserver string `toml:"homeserver"`
+		ServerName string `toml:"server_name"`
 	} `json:"matrix" toml:"matrix"`
 	Redis struct {
-		Address    string `toml:"address" json:"address"`
-		Password   string `toml:"password" json:"password"`
-		RoomsDB    int    `toml:"rooms_db" json:"rooms_db"`
-		MessagesDB int    `toml:"messages_db" json:"messages_db"`
-		EventsDB   int    `toml:"events_db" json:"events_db"`
-		StateDB    int    `toml:"state_db" json:"state_db"`
-	} `json:"redis" toml:"redis"`
+		Address    string `toml:"address"`
+		Password   string `toml:"password"`
+		RoomsDB    int    `toml:"rooms_db"`
+		MessagesDB int    `toml:"messages_db"`
+		EventsDB   int    `toml:"events_db"`
+		StateDB    int    `toml:"state_db"`
+	} `toml:"redis"`
+	Cache struct {
+		PublicRooms struct {
+			Enabled     bool  `toml:"enabled"`
+			ExpireAfter int64 `toml:"expire_after"`
+		} `toml:"public_rooms"`
+		RoomState struct {
+			Enabled     bool  `toml:"enabled"`
+			ExpireAfter int64 `toml:"expire_after"`
+		} `toml:"room_state"`
+		Messages struct {
+			Enabled     bool  `toml:"enabled"`
+			ExpireAfter int64 `toml:"expire_after"`
+		} `toml:"messages"`
+	} `toml:"cache"`
 	Security struct {
-		AllowedOrigins []string `toml:"allowed_origins" json:"allowed_origins"`
-	} `json:"security" toml:"security"`
+		AllowedOrigins []string `toml:"allowed_origins"`
+	} `toml:"security"`
 }
 
 var conf Config

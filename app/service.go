@@ -63,6 +63,7 @@ func (c *App) ProcessRoom(room_id id.RoomID) error {
 	info, err := c.GetRoomInfo(&RoomInfoOptions{
 		RoomID: room_id.String(),
 	})
+
 	if err != nil {
 		return err
 	}
@@ -71,6 +72,16 @@ func (c *App) ProcessRoom(room_id id.RoomID) error {
 	if err != nil {
 		return err
 	}
+
+	evt := event.Type{"commune.room.public", 2}
+	e, err := c.Matrix.SendStateEvent(context.Background(), room_id, evt, "", map[string]interface{}{
+		"public": true,
+	})
+
+	if err != nil {
+		c.Log.Error().Msgf("Error sending state event: %v", err)
+	}
+	c.Log.Info().Msgf("Sent state event resp: %v", e)
 
 	return nil
 }
