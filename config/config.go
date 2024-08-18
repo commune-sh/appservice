@@ -56,9 +56,6 @@ type Config struct {
 			ExpireAfter int64 `toml:"expire_after"`
 		} `toml:"messages"`
 	} `toml:"cache"`
-	Security struct {
-		AllowedOrigins []string `toml:"allowed_origins"`
-	} `toml:"security"`
 }
 
 var conf Config

@@ -55,11 +55,6 @@ expire_after = 3600 # defaults to 1 hour if not set
 enabled = false
 expire_after = 3600 # defaults to 1 hour if not set
 
-[security]
-# This should include the domain you'll run this server on, and any other
-# domains you want to allow for local development
-allowed_origins = ["http://public.commune.sh"]
-
 [log]
 max_size = 100
 max_backups = 7

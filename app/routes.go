@@ -123,7 +123,7 @@ func (c *App) NotFound(w http.ResponseWriter, r *http.Request) {
 
 func (c *App) CORS() {
 	cors := cors.New(cors.Options{
-		AllowedOrigins:   c.Config.Security.AllowedOrigins,
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"X-PINGOTHER", "Accept", "Authorization", "Image", "Attachment", "File-Type", "Content-Type", "X-CSRF-Token", "Access-Control-Allow-Origin"},
 		ExposedHeaders:   []string{"Link"},
