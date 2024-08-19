@@ -1,0 +1,14 @@
+Description=Commune Appservice
+
+After=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/commune/appservice
+ExecStart=/home/commune/appservice/bin/commune
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
