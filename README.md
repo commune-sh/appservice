@@ -1,11 +1,27 @@
 ### Commune Appservice
 
-This is a WIP appservice for making matrix rooms publicly accessible - intended
-to be used with the Commune client.
+This is an appservice for making matrix rooms and spaces publicly accessible - intended
+to be used with [Commune](https://github.com/commune-sh/commune).
+
+The appservice user joins any public matrix rooms it's invited to, and the server proxies specific read-only endpoints to the homeserver's REST API, using the appservice token. 
+
+#### Discovery
+
+The Commune client queries the matrix homeserver's `/.well-known/matrix/client` endpoint to detect whether this appservice is running. Ensure that the endpoint returns the `commune.appservice` URL:
+```
+{
+  "m.homeserver": {
+    "base_url": "https://matrix.commune.sh"
+  },
+  "commune.appservice": {
+    "url": "https://public.commune.sh"
+  },
+}
+```
 
 #### Configuration
 
-Register a new appservice on your homeserver:
+Register a new appservice on your Synapse homeserver:
 
 ```yaml
 id: "commune_public_access"
@@ -20,31 +36,64 @@ namespaces:
     regex: "!.*:.*"
 ```
 
+For alternative server implementations like Dendrite or Conduit, look up the relevant appservice configuration documentation.
+
 Copy `config.sample.yaml` to `config.yaml` and fill in the required fields.
 
 ```toml
 [app]
-domain = "public.commune.sh"
+domain = "localhost:8989"
 port = 8989
 
 [appservice]
-id = "commune_public_access"
-sender_localpart = "commune_public_access"
-access_token = "app_service_access_token"
-hs_access_token = "homeserver_access_token"
+id = "commune"
+sender_localpart = "public"
+access_token = "pei6wie5xishahxa0chooChohlai3chi"
+hs_access_token = "giefai8uyiPhee9Adi6ea0Feeth1tool"
+
+[appservice.rules]
+auto_join = true
+invite_by_local_user = true
+federation_domain_whitelist = ["matrix.org", "localhost:8481"]
 
 [matrix]
-homeserver = "http://localhost:8008"
-server_name = "commune.sh"
+homeserver = "http://localhost:8080"
+server_name = "localhost:8480"
 
-[security]
-allowed_origins = ["http://public.commune.sh"]
+[redis]
+address = "localhost:6379"
+password = ""
+rooms_db = 1
+messages_db = 2
+events_db = 3
+state_db = 4
+
+[cache.public_rooms]
+enabled = true
+expire_after = 14400
+
+[cache.room_state]
+enabled = true
+expire_after = 3600
+
+[cache.messages]
+enabled = true
+expire_after = 3600
 
 [log]
 max_size = 100
 max_backups = 7
 max_age = 30
 compress = true
+
 ```
 
+To ensure that this appservice only joins local homeserver rooms, leave the `federation_domain_whitelist` value empty. 
+
+#### Running
+
 Run `make` to build the binary `./bin/commune`.
+
+#### Deploying
+
+For simplicity, run this appservice on the same host where the matrix homeserver lives, although it isn't necessary. There are example docs for both a systemd unit and nginx reverse proxy in the `/docs`.
