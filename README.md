@@ -39,7 +39,7 @@ namespaces:
 
 For alternative server implementations like Dendrite or Conduit, look up the relevant appservice configuration documentation.
 
-Copy `config.sample.yaml` to `config.yaml` and fill in the required fields.
+Copy `config.sample.toml` to `config.toml` and fill in the required fields.
 
 ```toml
 [app]
@@ -95,13 +95,15 @@ To ensure that this appservice only joins local homeserver rooms, leave the `fed
 
 Run `make` to build the binary `./bin/commune`.
 
+Additionally, you can run the server in a container with `docker compose up -v`.
+
 #### Deploying
 
 For simplicity, run this appservice on the same host where the matrix homeserver lives, although it isn't necessary. There are example docs for both a systemd unit and nginx reverse proxy in the [`/docs`](https://github.com/commune-sh/appservice/tree/main/docs).
 
 ### Development
 
-To develop this appservice, you'll need to have a matrix homeserver running locally. Run `modd` to watch for changes and rebuild the binary.
+To develop this appservice, you'll need to have a matrix homeserver running locally. Update the `config.toml` file to point to your locally running matrix instance. Run `modd` to build the binary and watch for changes.
 
 
 #### Community
