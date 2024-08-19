@@ -49,13 +49,13 @@ port = 8989
 [appservice]
 id = "commune"
 sender_localpart = "public"
-access_token = "pei6wie5xishahxa0chooChohlai3chi"
-hs_access_token = "giefai8uyiPhee9Adi6ea0Feeth1tool"
+access_token = "app_service_access_token"
+hs_access_token = "homeserver_access_token"
 
 [appservice.rules]
 auto_join = true
 invite_by_local_user = true
-federation_domain_whitelist = ["matrix.org", "localhost:8481"]
+federation_domain_whitelist = ["matrix.org", "dev.commune.sh"]
 
 [matrix]
 homeserver = "http://localhost:8080"
