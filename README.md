@@ -8,7 +8,8 @@ The appservice user joins any public matrix rooms it's invited to, and the serve
 #### Discovery
 
 The Commune client queries the matrix homeserver's `/.well-known/matrix/client` endpoint to detect whether this appservice is running. Ensure that the endpoint returns the `commune.appservice` URL:
-```
+
+```json
 {
   "m.homeserver": {
     "base_url": "https://matrix.commune.sh"
