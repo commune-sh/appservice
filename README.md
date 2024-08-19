@@ -97,3 +97,13 @@ Run `make` to build the binary `./bin/commune`.
 #### Deploying
 
 For simplicity, run this appservice on the same host where the matrix homeserver lives, although it isn't necessary. There are example docs for both a systemd unit and nginx reverse proxy in the `/docs`.
+
+### Development
+
+To develop this appservice, you'll need to have a matrix homeserver running locally. Run `modd` to watch for changes and rebuild the binary.
+
+
+#### Community
+
+To keep up to date with Commune development, you can find us on `#commune:commune.sh` or `#commune:matrix.org`.
+
