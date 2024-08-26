@@ -28,6 +28,7 @@ type PublicRoom struct {
 	JoinRule          string   `json:"join_rule"`
 	HistoryVisibility string   `json:"history_visibility"`
 	Children          []string `json:"children,omitempty"`
+	Parents           []string `json:"parents,omitempty"`
 	Settings          any      `json:"settings,omitempty"`
 	RoomCategories    any      `json:"room_categories,omitempty"`
 	IsBridge          bool     `json:"is_bridge"`
@@ -349,6 +350,15 @@ func (c *App) GetRoomInfo(r *RoomInfoOptions) (*RoomInfo, error) {
 		}
 	}
 
+	ev := event.Type{"commune.room.name", 2}
+	name_event = state[ev][""]
+	if name_event != nil {
+		name, ok := name_event.Content.Raw["name"].(string)
+		if ok {
+			room.Name = name
+		}
+	}
+
 	alias_event := state[event.NewEventType("m.room.canonical_alias")][""]
 	if alias_event != nil {
 		alias, ok := alias_event.Content.Raw["alias"].(string)
@@ -373,7 +383,7 @@ func (c *App) GetRoomInfo(r *RoomInfoOptions) (*RoomInfo, error) {
 		}
 	}
 
-	ev := event.Type{"commune.room.banner", 2}
+	ev = event.Type{"commune.room.banner", 2}
 	banner_event := state[ev][""]
 	if banner_event != nil {
 		banner, ok := banner_event.Content.Raw["url"].(string)
@@ -458,10 +468,13 @@ func (c *App) RoomInfo() http.HandlerFunc {
 					if slug == child_room || child.RoomID.String() == child_room {
 
 						room = RoomInfo{
-							RoomID:    child.RoomID.String(),
-							Name:      child.Name,
-							Topic:     child.Topic,
-							AvatarURL: fmt.Sprintf("mxc://%s/%s", child.AvatarURL.Homeserver, child.AvatarURL.FileID),
+							RoomID: child.RoomID.String(),
+							Name:   child.Name,
+							Topic:  child.Topic,
+						}
+
+						if child.AvatarURL.FileID != "" {
+							room.AvatarURL = fmt.Sprintf("mxc://%s/%s", child.AvatarURL.Homeserver, child.AvatarURL.FileID)
 						}
 
 						resp["room"] = room
